@@ -12,7 +12,6 @@
     "@ktibow/iconset-material-symbols": "^0.0.1732258297",
     "@mercuryworkshop/epoxy-tls": "2.1.15-2",
     "dreamland": "github:mercuryworkshop/dreamlandjs",
-    "dreamland-router": "github:mercuryworkshop/dreamland-router",
     "m3-dreamland": "github:mercuryworkshop/m3-dreamland",
     "rollup-plugin-typescript2": "^0.36.0",
     "vite-plugin-dreamland": "^1.2.1",

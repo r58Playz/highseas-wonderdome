@@ -1,0 +1,25 @@
+{
+  "name": "create-dreamland-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ktibow/iconset-material-symbols": "^0.0.1732258297",
+    "@mercuryworkshop/epoxy-tls": "2.1.15-2",
+    "dreamland": "github:mercuryworkshop/dreamlandjs",
+    "dreamland-router": "github:mercuryworkshop/dreamland-router",
+    "m3-dreamland": "github:mercuryworkshop/m3-dreamland",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "vite-plugin-dreamland": "^1.2.1",
+    "vite-plugin-static-copy": "^2.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vite": "^6.0.2"
+  }
+}

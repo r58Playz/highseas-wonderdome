@@ -427,7 +427,7 @@ const Home: Component<{}, {
 		loadMore();
 	}
 
-	const doesNotHaveToken = use(settings.wispServer, x => { try { !JSON.parse(x).slackId } catch { return true } });
+	const doesNotHaveToken = use(settings.token, x => { try { !JSON.parse(x).slackId } catch(e) { console.log(e); return true } });
 
 	return (
 		<div>

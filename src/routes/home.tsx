@@ -427,7 +427,7 @@ const Home: Component<{}, {
 		loadMore();
 	}
 
-	const hasToken = use(settings.wispServer, x => { try { !!JSON.parse(x).slackId } catch { return false } });
+	const doesNotHaveToken = use(settings.wispServer, x => { try { !JSON.parse(x).slackId } catch { return true } });
 
 	return (
 		<div>
@@ -435,7 +435,7 @@ const Home: Component<{}, {
 			<div>
 				A better High Seas Wonderdome client.
 				Doesn't spam POST requests and minified React errors, loads more than one matchup at once, and also has more info at a glance than the official one.
-				Your token (the hs-session cookie, use DevTools -&gt; Application -&gt; Cookies to get it) is needed to fetch matchups and submit votes as you.
+				Your token (the hs-session cookie, use DevTools -&gt; Application -&gt; Cookies to get it, make sure it is URL-decoded) is needed to fetch matchups and submit votes as you.
 			</div>
 			<div>
 				Uses Wisp and epoxy-tls to securely fetch the data from the client side. The Wisp proxy server sees only TLS encrypted data.
@@ -456,13 +456,13 @@ const Home: Component<{}, {
 					<div class="options">
 						{$if(use(this.loading), <LinearProgressIndeterminate />)}
 						<div class="expand" />
-						<Button type="filled" iconType="left" on:click={loadMore} disabled={hasToken}><Icon icon={iconRefresh} />Load more</Button>
-						<Button type="filled" iconType="left" on:click={reload} disabled={hasToken}><Icon icon={iconRefresh} />Refresh</Button>
+						<Button type="filled" iconType="left" on:click={loadMore} disabled={doesNotHaveToken}><Icon icon={iconRefresh} />Load more</Button>
+						<Button type="filled" iconType="left" on:click={reload} disabled={doesNotHaveToken}><Icon icon={iconRefresh} />Refresh</Button>
 					</div>
 					<IframeSafeList list={use(this.matchups)} class="matchups" />
 					{$if(use(this.matchups, x => x.length !== 0),
 						<div class="end">
-							<Button type="tonal" iconType="left" on:click={loadMore} disabled={hasToken}><Icon icon={iconRefresh} />Load even more</Button>
+							<Button type="tonal" iconType="left" on:click={loadMore} disabled={doesNotHaveToken}><Icon icon={iconRefresh} />Load even more</Button>
 							{$if(use(this.loading), <LinearProgressIndeterminate />)}
 						</div>
 					)}

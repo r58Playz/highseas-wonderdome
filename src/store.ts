@@ -7,7 +7,7 @@ export let settings: Stateful<{
 	token: string,
 }> = $store(
 	{
-		wispServer: "wss://wisp-server-workers.r58-factories.workers.dev",
+		wispServer: "wss://anura.pro/",
 		epoxyVersion: epoxyVersion,
 		numToLoad: "10",
 		token: "",

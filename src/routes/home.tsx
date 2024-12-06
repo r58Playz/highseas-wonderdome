@@ -260,63 +260,63 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 						<div class="analyticsrow">
 							Opened README:
 							<SegmentedButtonContainer>
-								<SegmentedButtonItem 
-									type="checkbox" 
-									name="readme-opened" 
+								<SegmentedButtonItem
+									type="checkbox"
+									name="readme-opened"
 									input="readme-opened-1"
 									bind:checked={use(this.readmeOpenedOne)}
 								>
 									Left
 								</SegmentedButtonItem>
-								<SegmentedButtonItem 
-									type="checkbox" 
-									name="readme-opened" 
+								<SegmentedButtonItem
+									type="checkbox"
+									name="readme-opened"
 									input="readme-opened-2"
 									bind:checked={use(this.readmeOpenedTwo)}
 								>
-									Right	
+									Right
 								</SegmentedButtonItem>
 							</SegmentedButtonContainer>
 						</div>
 						<div class="analyticsrow">
 							Opened demo:
 							<SegmentedButtonContainer>
-								<SegmentedButtonItem 
-									type="checkbox" 
-									name="demo-opened" 
+								<SegmentedButtonItem
+									type="checkbox"
+									name="demo-opened"
 									input="demo-opened-1"
 									bind:checked={use(this.demoOpenedOne)}
 								>
 									Left
 								</SegmentedButtonItem>
-								<SegmentedButtonItem 
-									type="checkbox" 
-									name="demo-opened" 
+								<SegmentedButtonItem
+									type="checkbox"
+									name="demo-opened"
 									input="demo-opened-2"
 									bind:checked={use(this.demoOpenedTwo)}
 								>
-									Right	
+									Right
 								</SegmentedButtonItem>
 							</SegmentedButtonContainer>
 						</div>
 						<div class="analyticsrow">
 							Opened repo:
 							<SegmentedButtonContainer>
-								<SegmentedButtonItem 
-									type="checkbox" 
-									name="repo-opened" 
+								<SegmentedButtonItem
+									type="checkbox"
+									name="repo-opened"
 									input="repo-opened-1"
 									bind:checked={use(this.repoOpenedOne)}
 								>
 									Left
 								</SegmentedButtonItem>
-								<SegmentedButtonItem 
-									type="checkbox" 
-									name="repo-opened" 
+								<SegmentedButtonItem
+									type="checkbox"
+									name="repo-opened"
 									input="repo-opened-2"
 									bind:checked={use(this.repoOpenedTwo)}
 								>
-									Right	
+									Right
 								</SegmentedButtonItem>
 							</SegmentedButtonContainer>
 						</div>
@@ -427,12 +427,15 @@ const Home: Component<{}, {
 		loadMore();
 	}
 
+	const hasToken = use(settings.wispServer, x => { try { !!JSON.parse(x).slackId } catch { return false } });
+
 	return (
 		<div>
 			<div class="m3-font-headline-medium">High Seas Wonderdome</div>
 			<div>
 				A better High Seas Wonderdome client.
-				Doesn't spam POST requests and loads more than one matchup at once, and also has more info at a glance than the official one.
+				Doesn't spam POST requests and minified React errors, loads more than one matchup at once, and also has more info at a glance than the official one.
+				Your token (the hs-session cookie, use DevTools -&gt; Application -&gt; Cookies to get it) is needed to fetch matchups and submit votes as you.
 			</div>
 			<div>
 				Uses Wisp and epoxy-tls to securely fetch the data from the client side. The Wisp proxy server sees only TLS encrypted data.
@@ -453,13 +456,13 @@ const Home: Component<{}, {
 					<div class="options">
 						{$if(use(this.loading), <LinearProgressIndeterminate />)}
 						<div class="expand" />
-						<Button type="filled" iconType="left" on:click={loadMore}><Icon icon={iconRefresh} />Load more</Button>
-						<Button type="filled" iconType="left" on:click={reload}><Icon icon={iconRefresh} />Refresh</Button>
+						<Button type="filled" iconType="left" on:click={loadMore} disabled={hasToken}><Icon icon={iconRefresh} />Load more</Button>
+						<Button type="filled" iconType="left" on:click={reload} disabled={hasToken}><Icon icon={iconRefresh} />Refresh</Button>
 					</div>
 					<IframeSafeList list={use(this.matchups)} class="matchups" />
 					{$if(use(this.matchups, x => x.length !== 0),
 						<div class="end">
-							<Button type="tonal" iconType="left" on:click={loadMore}><Icon icon={iconRefresh} />Load even more</Button>
+							<Button type="tonal" iconType="left" on:click={loadMore} disabled={hasToken}><Icon icon={iconRefresh} />Load even more</Button>
 							{$if(use(this.loading), <LinearProgressIndeterminate />)}
 						</div>
 					)}

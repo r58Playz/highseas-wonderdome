@@ -1,11 +1,10 @@
-import { Button, Card, Dialog, Icon, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextField, TextFieldMultiline } from "m3-dreamland";
+import { Button, Card, Icon, LinearProgressIndeterminate, TextField } from "m3-dreamland";
 import { settings } from "../store";
-import { fetch } from '../epoxy';
 import { IframeSafeList } from "../iframesafelist";
 
 import iconRefresh from "@ktibow/iconset-material-symbols/refresh";
 import iconSwapHoriz from "@ktibow/iconset-material-symbols/swap-horiz";
-import { Matchup, ProjectView, SubmitVoteDialog } from "./project";
+import { fetchProject, Matchup, ProjectView, SubmitVoteDialog } from "./project";
 
 const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 	selected: 1 | 2,
@@ -45,7 +44,7 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 	)
 }
 
-const Home: Component<{}, {
+export const Home: Component<{}, {
 	matchups: { el: DLElement<typeof MatchupView>, id: string }[]
 	loading: boolean,
 }> = function() {
@@ -58,6 +57,7 @@ const Home: Component<{}, {
 		.settings {
 			display: flex;
 			gap: 1em;
+			flex-wrap: wrap;
 		}
 		.settings > * {
 			flex: 1;
@@ -92,32 +92,16 @@ const Home: Component<{}, {
 	this.loading = false;
 
 	const loadOne = async () => {
-		const matchupText = await fetch("https://highseas.hackclub.com/api/battles/matchups", {
-			headers: { "Cookie": `hs-session=${encodeURIComponent(settings.token)}` }
-		}).then(r => r.text());
-		let matchup;
-		try {
-			matchup = JSON.parse(matchupText);
-		} catch (err) {
-			console.error("probably ratelimited: ", matchupText, err);
-			return
+		const matchup = await fetchProject();
+		if (matchup) {
+			this.matchups = [...this.matchups, {
+				el: <MatchupView
+					matchup={matchup.matchup}
+					remove={() => this.matchups = this.matchups.filter((x) => x.id !== matchup.id)}
+				/>,
+				id: matchup.id,
+			}];
 		}
-		if (!matchup.project1) throw new Error("your stuff failed to fetch: " + JSON.stringify(matchup));
-
-		const parsed = {
-			one: matchup.project1,
-			two: matchup.project2,
-			signature: matchup.signature,
-			timestamp: matchup.ts
-		};
-		const id = parsed.one.id + parsed.two.id;
-		this.matchups = [...this.matchups, {
-			el: <MatchupView
-				matchup={parsed}
-				remove={() => this.matchups = this.matchups.filter((x) => x.id !== id)}
-			/>,
-			id,
-		}];
 	}
 	const loadMore = async () => {
 		this.loading = true;
@@ -178,5 +162,3 @@ const Home: Component<{}, {
 		</div>
 	);
 };
-
-export default Home;

@@ -318,3 +318,27 @@ export const ProjectView: Component<{ data: Project, open: () => void }, {}> = f
 		</div>
 	)
 }
+
+export async function fetchProject(): Promise<{ matchup: Matchup, id: string } | null> {
+	const matchupText = await fetch("https://highseas.hackclub.com/api/battles/matchups", {
+		headers: { "Cookie": `hs-session=${encodeURIComponent(settings.token)}` }
+	}).then(r => r.text());
+	let matchup;
+	try {
+		matchup = JSON.parse(matchupText);
+	} catch (err) {
+		console.error("probably ratelimited: ", matchupText, err);
+		return null;
+	}
+	if (!matchup.project1) throw new Error("your stuff failed to fetch: " + JSON.stringify(matchup));
+
+	const parsed = {
+		one: matchup.project1,
+		two: matchup.project2,
+		signature: matchup.signature,
+		timestamp: matchup.ts
+	};
+	const id = parsed.one.id + parsed.two.id;
+
+	return { matchup: parsed, id, };
+}

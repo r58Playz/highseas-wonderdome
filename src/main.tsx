@@ -1,14 +1,26 @@
 import 'dreamland/dev';
-import Home from './routes/home';
-
 import './index.css';
+
 import { StyleFromParams } from 'm3-dreamland';
 
+import { Tinder } from './routes/tinder';
+import { Home } from './routes/home';
+
 const App: Component<{}, { renderRoot: HTMLElement }> = function() {
+	this.css = `
+		width: 100%;
+		height: 100%;
+	`;
+	let component;
+	if (new URLSearchParams(location.search).has("tinder")) {
+		component = <Tinder />
+	} else {
+		component = <Home />
+	}
 	return (
 		<div>
 			<StyleFromParams scheme="vibrant" contrast={0} color="CBA6F7" />
-			<Home />
+			{component}
 		</div>
 	)
 }

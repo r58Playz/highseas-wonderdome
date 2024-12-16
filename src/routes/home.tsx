@@ -1,4 +1,4 @@
-import { Button, Card, Icon, LinearProgressIndeterminate, TextField } from "m3-dreamland";
+import { Button, ButtonLink, Card, Icon, LinearProgressIndeterminate, TextField } from "m3-dreamland";
 import { settings } from "../store";
 import { IframeSafeList } from "../iframesafelist";
 
@@ -131,6 +131,8 @@ export const Home: Component<{}, {
 			<div>
 				Uses Wisp and epoxy-tls to securely fetch the data from the client side. The Wisp proxy server sees only TLS encrypted data.
 			</div>
+
+			<ButtonLink type="text" href="?tinder">Try out tinder mode!</ButtonLink>
 
 			<div class="m3-font-headline-small">Settings</div>
 			<Card type="elevated">

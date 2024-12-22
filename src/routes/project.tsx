@@ -8,7 +8,7 @@ import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
 import { Button, CardClickable, Chip, Dialog, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
 import { settings } from "../store";
 import { fetch } from "../epoxy";
-import { Matchup } from "../api";
+import { Matchup, Project } from "../api";
 
 type ProjectAnalytics = {
 	readmeOpened: boolean,

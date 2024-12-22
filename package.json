@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@ktibow/iconset-material-symbols": "^0.0.1733470085",
-    "@mercuryworkshop/epoxy-tls": "2.1.16-1",
-    "dreamland": "github:mercuryworkshop/dreamlandjs",
+    "@mercuryworkshop/epoxy-tls": "2.1.17-1",
+    "dreamland": "^0.0.25",
     "m3-dreamland": "github:mercuryworkshop/m3-dreamland",
     "rollup-plugin-typescript2": "^0.36.0",
     "vite-plugin-dreamland": "^1.2.1",
@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "typescript": "^5.7.2",
-    "vite": "^6.0.3"
+    "vite": "^6.0.5"
   }
 }

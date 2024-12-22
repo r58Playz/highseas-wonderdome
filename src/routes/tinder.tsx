@@ -1,6 +1,7 @@
 import { Button, CircularProgressIndeterminate, Icon } from "m3-dreamland";
-import { fetchProject, Matchup, ProjectView, SubmitVoteDialog } from "./project";
+import { ProjectView, SubmitVoteDialog } from "./project";
 import iconSwapVert from "@ktibow/iconset-material-symbols/swap-vert";
+import { fetchMatchup, Matchup } from "../api";
 
 export const Tinder: Component<{}, {
 	loading: boolean,
@@ -47,7 +48,7 @@ export const Tinder: Component<{}, {
 		let matchup;
 		while (!matchup) {
 			console.log("trying");
-			matchup = await fetchProject();
+			matchup = await fetchMatchup();
 		}
 		this.matchup = matchup.matchup;
 		this.loading = false;
@@ -71,7 +72,7 @@ export const Tinder: Component<{}, {
 								this.selected = selected;
 								dialogOpen.open = true;
 							}
-							// @ts-ignore
+							// @ts-expect-error
 							return <>
 								<SubmitVoteDialog
 									matchup={x}

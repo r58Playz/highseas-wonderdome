@@ -4,30 +4,17 @@ import iconMenuBook from "@ktibow/iconset-material-symbols/menu-book";
 import iconCode from "@ktibow/iconset-material-symbols/code";
 import iconLink from "@ktibow/iconset-material-symbols/link";
 import iconPerson from "@ktibow/iconset-material-symbols/person";
+import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
 import { Button, CardClickable, Chip, Dialog, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
 import { settings } from "../store";
 import { fetch } from "../epoxy";
-
-export type Project = {
-	id: string,
-	title: string,
-	entrant__slack_id: string,
-	ship_type: string,
-	update_description?: string,
-
-	screenshot_url: string,
-	readme_url: string,
-	repo_url: string,
-	deploy_url: string,
-};
+import { Matchup } from "../api";
 
 type ProjectAnalytics = {
 	readmeOpened: boolean,
 	repoOpened: boolean,
 	demoOpened: boolean,
 };
-
-export type Matchup = { signature: string, timestamp: number, one: Project, two: Project };
 
 export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, open: boolean, remove: () => void, }, {
 	reason: string,
@@ -119,8 +106,8 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			explanation: this.reason,
 			winner: getProject(this.selected).id,
 			loser: getOtherProject(this.selected).id,
-			winnerRating: undefined, // getProject(this.selected).rating,
-			loserRating: undefined, // getOtherProject(this.selected).rating,
+			winnerRating: getProject(this.selected).rating,
+			loserRating: getOtherProject(this.selected).rating,
 			analytics: {
 				skipsBeforeVote: 0,
 				matchupGeneratedAt: new Date(),
@@ -128,14 +115,15 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			},
 		};
 		this.loading = true;
-		await fetch("https://highseas.hackclub.com/api/battles/vote", {
+		const ret = await fetch("https://highseas.hackclub.com/api/battles/vote", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				"Cookie": `hs-session=${encodeURIComponent(settings.token)}`
 			},
 			body: JSON.stringify(body),
-		});
+		}).then(r => r.text());
+		console.log("Submitted vote: ", getProject(this.selected).id, getOtherProject(this.selected).id, ret);
 		this.loading = false;
 		close();
 		setTimeout(this.remove, 100);
@@ -288,7 +276,7 @@ export const ProjectView: Component<{ data: Project, open: () => void }, {}> = f
 	};
 	const slack = (e: Event) => {
 		e.stopImmediatePropagation();
-		window.open(`https://hackclub.slack.com/team/${this.data.entrant__slack_id}`, "_blank");
+		window.open(`https://hackclub.slack.com/app_redirect?channel=${this.data.entrant__slack_id}`, "_blank");
 	}
 	const github = (e: Event) => {
 		e.stopImmediatePropagation();
@@ -302,6 +290,7 @@ export const ProjectView: Component<{ data: Project, open: () => void }, {}> = f
 					<div class="m3-font-title-large">{this.data.title}</div>
 					<div class="chips">
 						<Chip type="general" icon={iconDirectionsBoat}><span class="caps">{this.data.ship_type}</span></Chip>
+						<Chip type="general" icon={iconThumbsUpDown}>{this.data.rating}</Chip>
 						<Chip type="general" icon={iconPerson} on:click={github}>GH: {user}</Chip>
 						<Chip type="general" icon={iconBadge} on:click={slack}>Slack: {this.data.entrant__slack_id}</Chip>
 
@@ -317,28 +306,4 @@ export const ProjectView: Component<{ data: Project, open: () => void }, {}> = f
 			</CardClickable>
 		</div>
 	)
-}
-
-export async function fetchProject(): Promise<{ matchup: Matchup, id: string } | null> {
-	const matchupText = await fetch("https://highseas.hackclub.com/api/battles/matchups", {
-		headers: { "Cookie": `hs-session=${encodeURIComponent(settings.token)}` }
-	}).then(r => r.text());
-	let matchup;
-	try {
-		matchup = JSON.parse(matchupText);
-	} catch (err) {
-		console.error("probably ratelimited: ", matchupText, err);
-		return null;
-	}
-	if (!matchup.project1) throw new Error("your stuff failed to fetch: " + JSON.stringify(matchup));
-
-	const parsed = {
-		one: matchup.project1,
-		two: matchup.project2,
-		signature: matchup.signature,
-		timestamp: matchup.ts
-	};
-	const id = parsed.one.id + parsed.two.id;
-
-	return { matchup: parsed, id, };
 }

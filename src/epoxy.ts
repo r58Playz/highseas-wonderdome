@@ -14,6 +14,7 @@ let currentWispUrl: string;
 async function evictEpoxy() {
 	if (!cache) cache = await window.caches.open("classlinkv2-epoxy");
 	await cache.delete(EPOXY_PATH);
+	console.log(cache);
 }
 
 async function instantiateEpoxy() {
@@ -42,6 +43,8 @@ export async function fetch(url: string, options?: any): Promise<Response> {
 		} else {
 			await evictEpoxy();
 			await instantiateEpoxy();
+			console.log(`evicted epoxy "${settings.epoxyVersion}" from cache because epoxy "${epoxyVersion}" is available`);
+			settings.epoxyVersion = epoxyVersion;
 		}
 	}
 
@@ -64,3 +67,6 @@ export async function fetch(url: string, options?: any): Promise<Response> {
 		throw err;
 	}
 }
+
+// @ts-ignore
+window.epoxyFetch = fetch;

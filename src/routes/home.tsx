@@ -1,10 +1,11 @@
 import { Button, ButtonLink, Card, Icon, LinearProgressIndeterminate, TextField } from "m3-dreamland";
-import { settings } from "../store";
+import { defaultInfoHash, settings } from "../store";
 import { IframeSafeList } from "../iframesafelist";
 
 import iconRefresh from "@ktibow/iconset-material-symbols/refresh";
 import iconSwapHoriz from "@ktibow/iconset-material-symbols/swap-horiz";
-import { fetchProject, Matchup, ProjectView, SubmitVoteDialog } from "./project";
+import { ProjectView, SubmitVoteDialog } from "./project";
+import { fetchMatchup, fetchStatus as fetchInfo, Matchup, UserInfo } from "../api";
 
 const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 	selected: 1 | 2,
@@ -46,13 +47,29 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 
 export const Home: Component<{}, {
 	matchups: { el: DLElement<typeof MatchupView>, id: string }[]
+	info: UserInfo | null
 	loading: boolean,
+	infoLoading: boolean,
 }> = function() {
 	this.css = `
 		padding: 1em;
 		display: flex;
 		flex-direction: column;
 		gap: 1em;
+
+		.settings-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1em;
+		}
+		.settings-text {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.settings-text code {
+			word-break: break-all;
+		}
 
 		.settings {
 			display: flex;
@@ -64,6 +81,12 @@ export const Home: Component<{}, {
 		}
 		.settings .TextField-m3-container {
 			width: 100%;
+		}
+
+		.info-empty {
+			display: flex;
+			align-items: center;
+			justify-content: center;
 		}
 
 		.matchups {
@@ -86,18 +109,34 @@ export const Home: Component<{}, {
 			gap: 0.5em;
 			align-items: center;
 		}
+		
+		@media (max-width: 775px) {
+			.settings-hash {
+				flex-direction: column;
+			}
+		}
 	`;
 
 	this.matchups = [];
+	this.info = null;
 	this.loading = false;
 
+	const reloadInfo = async () => {
+		this.info = null;
+		this.infoLoading = true;
+		this.info = await fetchInfo();
+		this.infoLoading = false;
+	}
 	const loadOne = async () => {
-		const matchup = await fetchProject();
+		const matchup = await fetchMatchup();
 		if (matchup) {
 			this.matchups = [...this.matchups, {
 				el: <MatchupView
 					matchup={matchup.matchup}
-					remove={() => this.matchups = this.matchups.filter((x) => x.id !== matchup.id)}
+					remove={() => {
+						this.matchups = this.matchups.filter((x) => x.id !== matchup.id);
+						reloadInfo();
+					}}
 				/>,
 				id: matchup.id,
 			}];
@@ -105,10 +144,11 @@ export const Home: Component<{}, {
 	}
 	const loadMore = async () => {
 		this.loading = true;
-		const promises = [];
+		const promises = [reloadInfo()];
+		await new Promise(r => setTimeout(r, 50));
 		for (let i = 0; i < +settings.numToLoad; i++) {
-			promises.push(loadOne());
 			await new Promise(r => setTimeout(r, 50));
+			promises.push(loadOne());
 		}
 		await Promise.all(promises).catch(() => this.loading = false);
 		this.loading = false;
@@ -134,17 +174,46 @@ export const Home: Component<{}, {
 
 			<ButtonLink type="text" href="?tinder">Try out tinder mode!</ButtonLink>
 
-			<div class="m3-font-headline-small">Settings</div>
 			<Card type="elevated">
-				<div class="settings">
-					<TextField name="Token (hs-session cookie)" bind:value={use(settings.token)} extraOptions={{ type: "password" }} />
-					<TextField name="Wisp Server" bind:value={use(settings.wispServer)} />
-					<TextField name="Number to load" bind:value={use(settings.numToLoad)} />
+				<div class="settings-container">
+					<div class="m3-font-headline-small">Settings</div>
+					<div class="settings">
+						<TextField name="Token (hs-session cookie)" bind:value={use(settings.token)} extraOptions={{ type: "password" }} />
+						<TextField name="Wisp Server" bind:value={use(settings.wispServer)} />
+						<TextField name="Number to load" bind:value={use(settings.numToLoad)} />
+					</div>
+					<div class="settings settings-hash">
+						<div class="settings-text">
+							<span>Default user info Next-Action hash: <code>{defaultInfoHash}</code></span>
+						</div>
+						<TextField name="User info Next-Action hash" bind:value={use(settings.infoHash)} />
+					</div>
 				</div>
 			</Card>
 
-			<div class="m3-font-headline-small">Matchups</div>
 			<Card type="elevated">
+				<div class="m3-font-headline-small">User info</div>
+				<div class="options">
+					{$if(use(this.infoLoading), <LinearProgressIndeterminate />)}
+					<div class="expand" />
+					<Button type="filled" iconType="left" on:click={reloadInfo} disabled={doesNotHaveToken}><Icon icon={iconRefresh} />Load info</Button>
+				</div>
+				{$if(use(this.info, x => !!x),
+					<div class="info">
+						<div>Blessed: {use(this.info!.blessed)}</div>
+						<div>Cursed: {use(this.info!.cursed)}</div>
+						<div>Votes remaining for a pending ship: {use(this.info!.votesRemainingForNextPendingShip)}</div>
+						<div>Doubloons: {use(this.info!.settledTickets)}</div>
+						<div>Referral link: <a href={use(this.info!.referralLink)}>{use(this.info!.referralLink)}</a></div>
+					</div>,
+					<div class="info-empty">
+						<span>User info has not been fetched</span>
+					</div>
+				)}
+			</Card>
+
+			<Card type="elevated">
+				<div class="m3-font-headline-small">Matchups</div>
 				<div>
 					<div class="options">
 						{$if(use(this.loading), <LinearProgressIndeterminate />)}

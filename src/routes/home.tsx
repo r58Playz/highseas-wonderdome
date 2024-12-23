@@ -158,7 +158,7 @@ export const Home: Component<{}, {
 		loadMore();
 	}
 
-	const doesNotHaveToken = use(settings.token, x => { try { !JSON.parse(x).slackId } catch (e) { return true } });
+	const doesNotHaveToken = use(settings.token, x => { try { return !JSON.parse(x).slackId } catch (e) { console.error(e); return true } });
 
 	return (
 		<div>
@@ -190,6 +190,25 @@ export const Home: Component<{}, {
 					</div>
 				</div>
 			</Card>
+
+			{$if(use(doesNotHaveToken),
+				<Card type="elevated">
+					<div>Your token was invalid</div>
+					<pre>
+						{use(settings.token, x => {
+							try {
+								if (!JSON.parse(x).slackId) {
+									return "Your token parsed as a JSON object, but it did not have the fields needed";
+								} else {
+									return "";
+								}
+							} catch(e) {
+								return ""+e;
+							}
+						})}
+					</pre>
+				</Card>
+			)}
 
 			<Card type="elevated">
 				<div class="m3-font-headline-small">User info</div>

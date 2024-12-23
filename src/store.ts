@@ -20,3 +20,6 @@ export let settings: Stateful<{
 );
 
 if (!settings.infoHash) settings.infoHash = defaultInfoHash;
+
+// @ts-ignore
+window.settings = settings;

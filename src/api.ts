@@ -1,7 +1,21 @@
 import { fetch } from "./epoxy";
 import { settings } from "./store";
 
-export type Matchup = { signature: string, timestamp: number, one: Project, two: Project };
+type ApiMatchup = {
+	project1: Project,
+	project2: Project,
+	signature: string,
+	ts: number,
+}
+
+export type Matchup = {
+	signature: string,
+	timestamp: number,
+	one: Project,
+	two: Project,
+	oneName: string | null,
+	twoName: string | null,
+};
 
 export type Project = {
 	id: string,
@@ -32,22 +46,37 @@ export type UserInfo = {
 	preexistingUser: boolean,
 };
 
+async function fetchSlackName(id: string): Promise<string | null> {
+	const info = await fetch(`https://cachet.dunkirk.sh/users/${id}`).then(r=>r.json());
+	if (!info.displayName) {
+		console.error("failed to fetch from cachet: ", info);
+		return null;
+	}
+	if (info.displayName.includes("https://")) {
+		console.log(`slackid ${id} has the displayName bug: `, info);
+		return null;
+	}
+	return info.displayName;
+}
+
 export async function fetchMatchup(): Promise<{ matchup: Matchup, id: string } | null> {
 	const matchupText = await fetch("https://highseas.hackclub.com/api/battles/matchups", {
 		headers: { "Cookie": `hs-session=${encodeURIComponent(settings.token)}` }
 	}).then(r => r.text());
 	let matchup;
 	try {
-		matchup = JSON.parse(matchupText);
+		matchup = JSON.parse(matchupText) as ApiMatchup;
 	} catch (err) {
 		console.error("probably ratelimited: ", matchupText, err);
 		return null;
 	}
-	if (!matchup.project1) throw new Error("your stuff failed to fetch: " + JSON.stringify(matchup));
+	if (!matchup.project1) throw new Error("matchup failed to fetch: " + JSON.stringify(matchup));
 
 	const parsed = {
 		one: matchup.project1,
 		two: matchup.project2,
+		oneName: await fetchSlackName(matchup.project1.entrant__slack_id),
+		twoName: await fetchSlackName(matchup.project2.entrant__slack_id),
 		signature: matchup.signature,
 		timestamp: matchup.ts
 	};

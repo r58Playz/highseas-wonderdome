@@ -157,7 +157,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								<SegmentedButtonItem
 									type="checkbox"
 									name="readme-opened"
-									input="readme-opened-1"
+									input={`readme-opened-${this.matchup.signature}-${this.matchup.one.id}`}
 									bind:checked={use(this.readmeOpenedOne)}
 								>
 									Left
@@ -165,7 +165,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								<SegmentedButtonItem
 									type="checkbox"
 									name="readme-opened"
-									input="readme-opened-2"
+									input={`readme-opened-${this.matchup.signature}-${this.matchup.two.id}`}
 									bind:checked={use(this.readmeOpenedTwo)}
 								>
 									Right
@@ -178,7 +178,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								<SegmentedButtonItem
 									type="checkbox"
 									name="demo-opened"
-									input="demo-opened-1"
+									input={`demo-opened-${this.matchup.signature}-${this.matchup.one.id}`}
 									bind:checked={use(this.demoOpenedOne)}
 								>
 									Left
@@ -186,7 +186,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								<SegmentedButtonItem
 									type="checkbox"
 									name="demo-opened"
-									input="demo-opened-2"
+									input={`demo-opened-${this.matchup.signature}-${this.matchup.two.id}`}
 									bind:checked={use(this.demoOpenedTwo)}
 								>
 									Right
@@ -199,7 +199,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								<SegmentedButtonItem
 									type="checkbox"
 									name="repo-opened"
-									input="repo-opened-1"
+									input={`repo-opened-${this.matchup.signature}-${this.matchup.one.id}`}
 									bind:checked={use(this.repoOpenedOne)}
 								>
 									Left
@@ -207,7 +207,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								<SegmentedButtonItem
 									type="checkbox"
 									name="repo-opened"
-									input="repo-opened-2"
+									input={`repo-opened-${this.matchup.signature}-${this.matchup.two.id}`}
 									bind:checked={use(this.repoOpenedTwo)}
 								>
 									Right
@@ -225,7 +225,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 	)
 }
 
-export const ProjectView: Component<{ data: Project, open: () => void }, {}> = function() {
+export const ProjectView: Component<{ data: Project, slackName: string | null, open: () => void }, {}> = function() {
 	this.css = `
 		flex: 1;
 		.CardClickable-m3-container {
@@ -292,7 +292,7 @@ export const ProjectView: Component<{ data: Project, open: () => void }, {}> = f
 						<Chip type="general" icon={iconDirectionsBoat}><span class="caps">{this.data.ship_type}</span></Chip>
 						<Chip type="general" icon={iconThumbsUpDown}>{this.data.rating}</Chip>
 						<Chip type="general" icon={iconPerson} on:click={github}>GH: {user}</Chip>
-						<Chip type="general" icon={iconBadge} on:click={slack}>Slack: {this.data.entrant__slack_id}</Chip>
+						<Chip type="general" icon={iconBadge} on:click={slack}>Slack: {this.slackName || this.data.entrant__slack_id}</Chip>
 
 						<Chip type="general" icon={iconMenuBook} on:click={readme}>README</Chip>
 						<Chip type="general" icon={iconCode} on:click={code}>Code</Chip>

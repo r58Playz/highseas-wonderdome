@@ -80,11 +80,11 @@ export const Tinder: Component<{}, {
 									bind:selected={use(this.selected)}
 									bind:open={use(dialogOpen.open)}
 								/>
-								<ProjectView data={x.one} open={() => open(1)} />
+								<ProjectView data={x.one} slackName={x.oneName} open={() => open(1)} />
 								<div class="vs">
 									<Icon icon={iconSwapVert} />
 								</div>
-								<ProjectView data={x.two} open={() => open(2)} />
+								<ProjectView data={x.two} slackName={x.twoName} open={() => open(2)} />
 								<Button type="elevated" on:click={() => { loadNext() }}>Both of these suck</Button>
 							</>
 

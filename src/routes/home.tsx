@@ -200,19 +200,19 @@ export const Home: Component<{}, {
 
 	return (
 		<div>
-			<div class="m3-font-headline-medium">High Seas Wonderdome</div>
+			<div class="m3-font-headline-large">High Seas Wonderdome</div>
 			<div>
 				A better <Link href="https://highseas.hackclub.com">High Seas</Link> Wonderdome client.
 				Doesn't spam POST requests and minified React errors, loads more than one matchup at once, and also has more info at a glance than the official one.
 				You can also filter out the personal website and tic-tac-toe slop, making it easier to vote on non-filler projects.
 			</div>
 			<div>
-				Your token (the hs-session cookie, use DevTools -&gt; Application -&gt; Cookies to get it, make sure it is URL-decoded) is needed to fetch matchups and submit votes as you.
-			</div>
-			<div>
 				This client uses <Link href="https://github.com/mercuryworkshop/wisp-protocol">Wisp</Link> and <Link href="https://github.com/mercuryworkshop/epoxy-tls">epoxy-tls</Link> to securely fetch the data from the client side.
 				There is no backend at all, all data is fetched end-to-end encrypted on the client side with epoxy-tls.
 				The Wisp proxy server sees only TLS encrypted data, and you can configure this client to use your own selfhosted Wisp server for more security.
+			</div>
+			<div>
+				Your token (the hs-session cookie, use DevTools -&gt; Application -&gt; Cookies to get it, make sure it is URL-decoded) is needed to fetch matchups and submit votes as you.
 			</div>
 
 			<ButtonLink type="text" href="?tinder">Try out tinder/mobile mode!</ButtonLink>

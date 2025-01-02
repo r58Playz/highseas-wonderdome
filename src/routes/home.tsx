@@ -1,5 +1,5 @@
 import { Button, ButtonLink, Card, Icon, LinearProgressIndeterminate, TextField } from "m3-dreamland";
-import { defaultInfoHash, settings } from "../store";
+import { settings } from "../store";
 import { IframeSafeList } from "../iframesafelist";
 
 import iconRefresh from "@ktibow/iconset-material-symbols/refresh";
@@ -155,7 +155,7 @@ export const Home: Component<{}, {
 			return false;
 		}
 	}
-	const retryOne = async (title: RegExp | null , username: RegExp | null) => {
+	const retryOne = async (title: RegExp | null, username: RegExp | null) => {
 		while (!(await loadOne(title, username))) {
 			await new Promise(r => setTimeout(r, 50));
 			console.log("retrying once");

@@ -11,6 +11,7 @@
   "dependencies": {
     "@ktibow/iconset-material-symbols": "^0.0.1733470085",
     "@mercuryworkshop/epoxy-tls": "2.1.17-1",
+    "@rsc-parser/react-client": "^0.9.2",
     "dreamland": "^0.0.25",
     "m3-dreamland": "github:mercuryworkshop/m3-dreamland",
     "rollup-plugin-typescript2": "^0.36.0",

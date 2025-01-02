@@ -113,12 +113,6 @@ export const Home: Component<{}, {
 			gap: 0.5em;
 			align-items: center;
 		}
-		
-		@media (max-width: 775px) {
-			.settings-hash {
-				flex-direction: column;
-			}
-		}
 	`;
 
 	this.matchups = [];
@@ -224,12 +218,6 @@ export const Home: Component<{}, {
 						<TextField name="Token (hs-session cookie)" bind:value={use(settings.token)} extraOptions={{ type: "password" }} />
 						<TextField name="Wisp Server" bind:value={use(settings.wispServer)} />
 						<TextField name="Number to load" bind:value={use(settings.numToLoad)} />
-					</div>
-					<div class="settings settings-hash">
-						<div class="settings-text">
-							<span>Default user info Next-Action hash: <code>{defaultInfoHash}</code></span>
-						</div>
-						<TextField name="User info Next-Action hash" bind:value={use(settings.infoHash)} />
 					</div>
 				</div>
 			</Card>

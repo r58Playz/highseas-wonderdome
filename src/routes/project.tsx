@@ -291,7 +291,13 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 	)
 }
 
-export const ProjectView: Component<{ data: Project, slackName: string | null, open: () => void }, {}> = function() {
+export const ProjectView: Component<{
+	data: Project,
+	slackName: string | null,
+	open: () => void
+}, {
+	imageOpen: boolean,
+}> = function() {
 	this.css = `
 		flex: 1;
 		.CardClickable-m3-container {
@@ -322,9 +328,21 @@ export const ProjectView: Component<{ data: Project, slackName: string | null, o
 			height: auto;
 			max-height: 35vh;
 			object-fit: contain;
+			z-index: 100;
+		}
+		dialog {
+			max-width: 100vw !important;
+			max-height: 100vh !important;
+		}
+		dialog img {
+			height: 75vh;
+			max-height: 100vh;
+			max-width: 90vw;
 		}
 		.expand { flex: 1; }
 	`;
+
+	this.imageOpen = false;
 
 	const user = new URL(this.data.repo_url).pathname.split("/")[1];
 
@@ -348,9 +366,19 @@ export const ProjectView: Component<{ data: Project, slackName: string | null, o
 		e.stopImmediatePropagation();
 		window.open(`https://github.com/${user}`, "_blank");
 	}
+	const expand = (e: Event) => {
+		e.stopImmediatePropagation();
+		this.imageOpen = true;
+	}
 
 	return (
 		<div>
+			<Dialog
+				headline="Image"
+				bind:open={use(this.imageOpen)}
+			>
+				<img src={this.data.screenshot_url} alt={`Image for project: ${this.data.title}`} />
+			</Dialog>
 			<CardClickable type="elevated" on:click={this.open}>
 				<div class="matchup">
 					<div class="m3-font-title-large">{this.data.title}</div>
@@ -366,7 +394,7 @@ export const ProjectView: Component<{ data: Project, slackName: string | null, o
 					</div>
 
 					<div class="expand" />
-					<img src={this.data.screenshot_url} alt={`Image for project: ${this.data.title}`} />
+					<img src={this.data.screenshot_url} alt={`Image for project: ${this.data.title}`} on:click={expand} />
 					<div class="expand pre">{this.data.update_description}</div>
 				</div>
 			</CardClickable>

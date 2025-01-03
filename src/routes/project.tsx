@@ -5,7 +5,7 @@ import iconCode from "@ktibow/iconset-material-symbols/code";
 import iconLink from "@ktibow/iconset-material-symbols/link";
 import iconPerson from "@ktibow/iconset-material-symbols/person";
 import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
-import { Button, CardClickable, Chip, Dialog, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
+import { Button, CardClickable, CheckboxAnim, Chip, Dialog, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
 import { settings } from "../store";
 import { fetch } from "../epoxy";
 import { Matchup, Project } from "../api";
@@ -21,6 +21,9 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 	loading: boolean
 	submitdisabled: boolean,
 
+	shareVote: "none" | "public" | "anonymous",
+	sendToUser: boolean,
+
 	readmeOpenedOne: boolean,
 	readmeOpenedTwo: boolean,
 	demoOpenedOne: boolean,
@@ -30,6 +33,9 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 }> = function() {
 
 	this.reason = "";
+
+	this.shareVote = settings.shareVote;
+	this.sendToUser = false;
 
 	this.readmeOpenedOne = true;
 	this.readmeOpenedTwo = true;
@@ -123,6 +129,29 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			},
 			body: JSON.stringify(body),
 		}).then(r => r.text());
+
+		if (this.shareVote !== "none") {
+			fetch("https://api.saahild.com/api/highseasships/send_vote", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-User-ID": JSON.parse(settings.token).slackId,
+				},
+				body: JSON.stringify({
+					vote: this.reason,
+					send_it_to_user: this.sendToUser,
+					anon: this.shareVote === "anonymous",
+					repo: getProject(this.selected).repo_url,
+					demo: getProject(this.selected).deploy_url,
+					title: getProject(this.selected).title,
+					author: getProject(this.selected).entrant__slack_id,
+					mathchup_against: getOtherProject(this.selected).title,
+				})
+			}).then(() => {
+				console.log("api.saahild.com finally returned");
+			});
+		}
+
 		console.log("Submitted vote: ", getProject(this.selected).id, getOtherProject(this.selected).id, ret);
 		this.loading = false;
 		close();
@@ -156,7 +185,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 							<SegmentedButtonContainer>
 								<SegmentedButtonItem
 									type="checkbox"
-									name="readme-opened"
+									name={`readme-opened-${this.matchup.signature}`}
 									input={`readme-opened-${this.matchup.signature}-${this.matchup.one.id}`}
 									bind:checked={use(this.readmeOpenedOne)}
 								>
@@ -164,7 +193,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								</SegmentedButtonItem>
 								<SegmentedButtonItem
 									type="checkbox"
-									name="readme-opened"
+									name={`readme-opened-${this.matchup.signature}`}
 									input={`readme-opened-${this.matchup.signature}-${this.matchup.two.id}`}
 									bind:checked={use(this.readmeOpenedTwo)}
 								>
@@ -177,7 +206,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 							<SegmentedButtonContainer>
 								<SegmentedButtonItem
 									type="checkbox"
-									name="demo-opened"
+									name={`demo-opened-${this.matchup.signature}`}
 									input={`demo-opened-${this.matchup.signature}-${this.matchup.one.id}`}
 									bind:checked={use(this.demoOpenedOne)}
 								>
@@ -185,7 +214,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								</SegmentedButtonItem>
 								<SegmentedButtonItem
 									type="checkbox"
-									name="demo-opened"
+									name={`demo-opened-${this.matchup.signature}`}
 									input={`demo-opened-${this.matchup.signature}-${this.matchup.two.id}`}
 									bind:checked={use(this.demoOpenedTwo)}
 								>
@@ -198,7 +227,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 							<SegmentedButtonContainer>
 								<SegmentedButtonItem
 									type="checkbox"
-									name="repo-opened"
+									name={`repo-opened-${this.matchup.signature}`}
 									input={`repo-opened-${this.matchup.signature}-${this.matchup.one.id}`}
 									bind:checked={use(this.repoOpenedOne)}
 								>
@@ -206,13 +235,50 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 								</SegmentedButtonItem>
 								<SegmentedButtonItem
 									type="checkbox"
-									name="repo-opened"
+									name={`repo-opened-${this.matchup.signature}`}
 									input={`repo-opened-${this.matchup.signature}-${this.matchup.two.id}`}
 									bind:checked={use(this.repoOpenedTwo)}
 								>
 									Right
 								</SegmentedButtonItem>
 							</SegmentedButtonContainer>
+						</div>
+					</div>
+					<div>These features need you to authorize the vote sharing API.</div>
+					<div class="analytics">
+						<div class="analyticsrow" on:change={(e: Event) => {
+							const target = e.target as HTMLInputElement | undefined;
+							this.shareVote = target!.id.split("-")[2] as any;
+						}}>
+							Send to slack?
+							<SegmentedButtonContainer>
+								<SegmentedButtonItem
+									type="radio"
+									name={`feedback-${this.matchup.signature}`}
+									input={`feedback-${this.matchup.signature}-none`}
+									checked={true}
+								>
+									No
+								</SegmentedButtonItem>
+								<SegmentedButtonItem
+									type="radio"
+									name={`feedback-${this.matchup.signature}`}
+									input={`feedback-${this.matchup.signature}-public`}
+								>
+									Public
+								</SegmentedButtonItem>
+								<SegmentedButtonItem
+									type="radio"
+									name={`feedback-${this.matchup.signature}`}
+									input={`feedback-${this.matchup.signature}-anonymous`}
+								>
+									Anonymous
+								</SegmentedButtonItem>
+							</SegmentedButtonContainer>
+						</div>
+						<div class="analyticsrow">
+							<CheckboxAnim><input type="checkbox" bind:checked={use(this.sendToUser)} /></CheckboxAnim>
+							Send to user
 						</div>
 					</div>
 				</div>

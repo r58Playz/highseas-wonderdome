@@ -1,4 +1,4 @@
-import { Button, ButtonLink, Card, Icon, LinearProgressIndeterminate, TextField } from "m3-dreamland";
+import { Button, ButtonLink, Card, Icon, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextField } from "m3-dreamland";
 import { settings } from "../store";
 import { IframeSafeList } from "../iframesafelist";
 
@@ -79,6 +79,7 @@ export const Home: Component<{}, {
 			display: flex;
 			gap: 1em;
 			flex-wrap: wrap;
+			align-items: center;
 		}
 		.settings > * {
 			flex: 1;
@@ -218,6 +219,39 @@ export const Home: Component<{}, {
 						<TextField name="Token (hs-session cookie)" bind:value={use(settings.token)} extraOptions={{ type: "password" }} />
 						<TextField name="Wisp Server" bind:value={use(settings.wispServer)} />
 						<TextField name="Number to load" bind:value={use(settings.numToLoad)} />
+					</div>
+					<ButtonLink type="text" href="https://api.saahild.com/api/highseasships/slack/oauth" extraOptions={{ target: "_blank" }}>
+						Authorize vote sharing API
+					</ButtonLink>
+					<div class="settings" on:change={(e: Event) => {
+						const target = e.target as HTMLInputElement | undefined;
+						settings.shareVote = target!.id.split("-")[1] as any;
+					}}>
+						Send to slack?
+						<SegmentedButtonContainer>
+							<SegmentedButtonItem
+								type="radio"
+								name="feedback"
+								input="feedback-none"
+								checked={true}
+							>
+								No
+							</SegmentedButtonItem>
+							<SegmentedButtonItem
+								type="radio"
+								name="feedback"
+								input="feedback-public"
+							>
+								Publicly
+							</SegmentedButtonItem>
+							<SegmentedButtonItem
+								type="radio"
+								name="feedback"
+								input="feedback-anonymous"
+							>
+								Anonymously
+							</SegmentedButtonItem>
+						</SegmentedButtonContainer>
 					</div>
 				</div>
 			</Card>

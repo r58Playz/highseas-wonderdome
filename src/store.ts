@@ -6,6 +6,8 @@ export let settings: Stateful<{
 	numToLoad: string,
 	token: string,
 
+	shareVote: string,
+
 	titleFilter: string,
 	usernameFilter: string,
 }> = $store(
@@ -15,15 +17,17 @@ export let settings: Stateful<{
 		numToLoad: "10",
 		token: "",
 
+		shareVote: "none",
+
 		titleFilter: "",
 		usernameFilter: "",
-		updateFilter: false
 	},
 	{ ident: "settings", backing: "localstorage", autosave: "auto" },
 );
 
 if (!settings.titleFilter) settings.titleFilter = "";
 if (!settings.usernameFilter) settings.usernameFilter = "";
+if (!settings.shareVote) settings.shareVote = "none";
 
 // @ts-ignore
 window.settings = settings;

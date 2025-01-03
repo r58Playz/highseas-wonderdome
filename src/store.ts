@@ -6,7 +6,7 @@ export let settings: Stateful<{
 	numToLoad: string,
 	token: string,
 
-	shareVote: string,
+	shareVote: "none" | "public" | "anonymous",
 
 	titleFilter: string,
 	usernameFilter: string,

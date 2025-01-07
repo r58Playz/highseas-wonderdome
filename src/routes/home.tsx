@@ -7,8 +7,8 @@ import iconSwapHoriz from "@ktibow/iconset-material-symbols/swap-horiz";
 import { ProjectView, SubmitVoteDialog } from "./project";
 import { fetchMatchup, fetchStatus as fetchInfo, Matchup, UserInfo, Airtable, AirtableKeys, fetchPerson, fillMatchup } from "../api";
 
-const Link: Component<{ href: string }, { children: string }> = function() {
-	return <a href={this.href} open="_blank">{this.children}</a>
+export const Link: Component<{ href: string }, { children: string }> = function() {
+	return <a href={this.href} target="_blank">{this.children}</a>
 }
 
 const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {

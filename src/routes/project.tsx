@@ -12,6 +12,8 @@ import iconPerson from "@ktibow/iconset-material-symbols/person";
 import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
 import iconCallSplit from "@ktibow/iconset-material-symbols/call-split";
 import iconStar from "@ktibow/iconset-material-symbols/star";
+import { Link } from "./home";
+import { Markdown } from "../markdown";
 
 type ProjectAnalytics = {
 	readmeOpened: boolean,
@@ -239,7 +241,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 									type="radio"
 									name={`feedback-${this.matchup.signature}`}
 									input={`feedback-${this.matchup.signature}-none`}
-									checked={true}
+									checked={use(this.shareVote, x => x === "none")}
 								>
 									No
 								</SegmentedButtonItem>
@@ -247,6 +249,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 									type="radio"
 									name={`feedback-${this.matchup.signature}`}
 									input={`feedback-${this.matchup.signature}-public`}
+									checked={use(this.shareVote, x => x === "public")}
 								>
 									Public
 								</SegmentedButtonItem>
@@ -254,6 +257,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 									type="radio"
 									name={`feedback-${this.matchup.signature}`}
 									input={`feedback-${this.matchup.signature}-anonymous`}
+									checked={use(this.shareVote, x => x === "anonymous")}
 								>
 									Anonymous
 								</SegmentedButtonItem>
@@ -281,6 +285,7 @@ export const ProjectView: Component<{
 	"on:analytics": (clicked: "readme" | "repo" | "demo") => void,
 }, {
 	imageOpen: boolean,
+	readmeOpen: boolean,
 }> = function() {
 	this.css = `
 		flex: 1;
@@ -307,7 +312,7 @@ export const ProjectView: Component<{
 			white-space: pre-wrap;
 		}
 
-		img {
+		.screenshot {
 			max-width: 100%;
 			height: auto;
 			max-height: 35vh;
@@ -315,25 +320,30 @@ export const ProjectView: Component<{
 			z-index: 100;
 		}
 		dialog {
-			max-width: 100vw !important;
-			max-height: 100vh !important;
+			max-width: 90vw !important;
+			max-height: 90vh !important;
 		}
-		dialog img {
+		dialog .screenshot {
 			height: 75vh;
 			max-height: 100vh;
 			max-width: 90vw;
 		}
 		.expand { flex: 1; }
+
+		.actions {
+			margin-bottom: 1rem;
+		}
 	`;
 
 	this.imageOpen = false;
+	this.readmeOpen = false;
 
 	const user = new URL(this.data.repo_url).pathname.split("/")[1];
 
 	const readme = (e: Event) => {
 		this["on:analytics"]("readme");
 		e.stopImmediatePropagation();
-		window.open(this.data.readme_url, "_blank");
+		this.readmeOpen = true;
 	};
 	const code = (e: Event) => {
 		this["on:analytics"]("repo");
@@ -364,8 +374,27 @@ export const ProjectView: Component<{
 			<Dialog
 				headline="Image"
 				bind:open={use(this.imageOpen)}
+
+				closeOnClick={false}
 			>
-				<img src={this.data.screenshot_url} alt={`Image for project: ${this.data.title}`} />
+				<img class="screenshot" src={this.data.screenshot_url} alt={`Image for project: ${this.data.title}`} />
+				<div class="actions">
+					<Button type="tonal" on:click={() => this.imageOpen = false}>Close</Button>
+				</div>
+			</Dialog>
+			<Dialog
+				headline="Readme"
+				bind:open={use(this.readmeOpen)}
+
+				closeOnClick={false}
+			>
+				<div>
+					<Link href={this.data.readme_url}>Open in new tab</Link>
+					<Markdown text={this.extras.readme || ""} />
+				</div>
+				<div class="actions">
+					<Button type="tonal" on:click={() => this.readmeOpen = false}>Close</Button>
+				</div>
 			</Dialog>
 			<CardClickable type="elevated" on:click={this.open}>
 				<div class="matchup">
@@ -384,7 +413,7 @@ export const ProjectView: Component<{
 					</div>
 
 					<div class="expand" />
-					<img src={this.data.screenshot_url} alt={`Image for project: ${this.data.title}`} on:click={expand} />
+					<img class="screenshot" src={this.data.screenshot_url} alt={`Image for project: ${this.data.title}`} on:click={expand} />
 					<div class="expand pre">{this.data.update_description}</div>
 				</div>
 			</CardClickable>

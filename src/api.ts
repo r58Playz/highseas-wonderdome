@@ -14,6 +14,7 @@ export type MatchupExtras = {
 	name: string | null,
 	stars: number | null,
 	forks: number | null,
+	readme: string | null,
 };
 
 export type Matchup = {
@@ -99,6 +100,14 @@ async function fetchSlackName(id: string): Promise<string | null> {
 	return info.displayName;
 }
 
+async function tryFetchText(url: string): Promise<string | null> {
+	try {
+		return await fetch(url).then(r => r.text());
+	} catch (err) {
+		return null;
+	}
+}
+
 async function fetchGithubStats(url: string): Promise<{ stars: number, forks: number, } | null> {
 	try {
 		const ret = await fetch(url).then(r => r.text());
@@ -135,6 +144,7 @@ export async function fetchMatchup(): Promise<{ matchup: Matchup, id: string } |
 		name: null,
 		stars: null,
 		forks: null,
+		readme: null,
 	};
 
 	const parsed = {
@@ -161,6 +171,9 @@ export async function fillMatchup(matchup: Matchup): Promise<Matchup> {
 
 	if (oneGithub) matchup.oneExtras = Object.assign(matchup.oneExtras, oneGithub);
 	if (twoGithub) matchup.twoExtras = Object.assign(matchup.twoExtras, twoGithub);
+	
+	matchup.oneExtras.readme = await tryFetchText(matchup.one.readme_url);
+	matchup.twoExtras.readme = await tryFetchText(matchup.two.readme_url);
 
 	return matchup;
 }

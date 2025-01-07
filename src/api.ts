@@ -14,6 +14,7 @@ export type MatchupExtras = {
 	name: string | null,
 	stars: number | null,
 	forks: number | null,
+	watchers: number | null,
 	readme: string | null,
 };
 
@@ -90,7 +91,7 @@ export type Airtable = {
 async function fetchSlackName(id: string): Promise<string | null> {
 	const info = await fetch(`https://cachet.dunkirk.sh/users/${id}`).then(r => r.json());
 	if (!info.displayName) {
-		console.error("failed to fetch from cachet: ", info);
+		console.warn("failed to fetch from cachet: ", info);
 		return null;
 	}
 	if (info.displayName.includes("https://")) {
@@ -108,21 +109,22 @@ async function tryFetchText(url: string): Promise<string | null> {
 	}
 }
 
-async function fetchGithubStats(url: string): Promise<{ stars: number, forks: number, } | null> {
+async function fetchGithubStats(url: string): Promise<{ stars: number, watchers: number, forks: number, } | null> {
 	try {
 		const ret = await fetch(url).then(r => r.text());
 		const dom = new DOMParser().parseFromString(ret, "text/html");
 		const stars = +dom.getElementById("repo-stars-counter-star")!.innerText;
 		const forks = +dom.getElementById("repo-network-counter")!.innerText;
+		const watchers = +(dom.querySelector(".Layout-sidebar a[href$='/watchers'] > strong")! as HTMLElement).innerText;
 
-		if (!Number.isFinite(stars) || !Number.isFinite(forks)) {
-			console.error(`failed to fetch github stats: stars ${stars} forks ${forks}`);
+		if (!Number.isFinite(stars) || !Number.isFinite(forks) || !Number.isFinite(watchers)) {
+			console.warn(`failed to fetch github stats: stars ${stars} forks ${forks} watchers ${watchers}`);
 			return null;
 		}
 
-		return { stars, forks };
+		return { stars, forks, watchers };
 	} catch (err) {
-		console.error("failed to fetch github stats:", err);
+		console.warn("failed to fetch github stats:", err);
 		return null;
 	}
 }
@@ -135,7 +137,7 @@ export async function fetchMatchup(): Promise<{ matchup: Matchup, id: string } |
 	try {
 		matchup = JSON.parse(matchupText) as ApiMatchup;
 	} catch (err) {
-		console.error("probably ratelimited: ", matchupText, err);
+		console.warn("probably ratelimited: ", matchupText, err);
 		return null;
 	}
 	if (!matchup.project1) throw new Error("matchup failed to fetch: " + JSON.stringify(matchup));
@@ -144,6 +146,7 @@ export async function fetchMatchup(): Promise<{ matchup: Matchup, id: string } |
 		name: null,
 		stars: null,
 		forks: null,
+		watchers: null,
 		readme: null,
 	};
 
@@ -171,7 +174,7 @@ export async function fillMatchup(matchup: Matchup): Promise<Matchup> {
 
 	if (oneGithub) matchup.oneExtras = Object.assign(matchup.oneExtras, oneGithub);
 	if (twoGithub) matchup.twoExtras = Object.assign(matchup.twoExtras, twoGithub);
-	
+
 	matchup.oneExtras.readme = await tryFetchText(matchup.one.readme_url);
 	matchup.twoExtras.readme = await tryFetchText(matchup.two.readme_url);
 

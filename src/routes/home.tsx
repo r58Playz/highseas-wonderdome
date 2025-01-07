@@ -8,6 +8,9 @@ import { ProjectView, SubmitVoteDialog } from "./project";
 import { fetchMatchup, fetchStatus as fetchInfo, Matchup, UserInfo, Airtable, AirtableKeys, fetchPerson, fillMatchup } from "../api";
 
 export const Link: Component<{ href: string }, { children: string }> = function() {
+	this.css = `
+		text-decoration: underline !important;
+	`;
 	return <a href={this.href} target="_blank">{this.children}</a>
 }
 
@@ -224,7 +227,7 @@ export const Home: Component<{}, {
 		}
 	}
 
-	const doesNotHaveToken = use(settings.token, x => { try { return !JSON.parse(x).slackId } catch (e) { console.error(e); return true } });
+	const doesNotHaveToken = use(settings.token, x => { try { return !JSON.parse(x).slackId } catch (e) { console.warn(e); return true } });
 
 	return (
 		<div>

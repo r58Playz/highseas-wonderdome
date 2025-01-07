@@ -2,6 +2,8 @@ import { Button, CardClickable, CheckboxAnim, Chip, Dialog, LinearProgressIndete
 import { settings } from "../store";
 import { fetch } from "../epoxy";
 import { Matchup, MatchupExtras, Project } from "../api";
+import { Link } from "./home";
+import { Markdown } from "../markdown";
 
 import iconBadge from "@ktibow/iconset-material-symbols/badge";
 import iconDirectionsBoat from "@ktibow/iconset-material-symbols/directions-boat";
@@ -12,8 +14,7 @@ import iconPerson from "@ktibow/iconset-material-symbols/person";
 import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
 import iconCallSplit from "@ktibow/iconset-material-symbols/call-split";
 import iconStar from "@ktibow/iconset-material-symbols/star";
-import { Link } from "./home";
-import { Markdown } from "../markdown";
+import iconVisibility from "@ktibow/iconset-material-symbols/visibility";
 
 type ProjectAnalytics = {
 	readmeOpened: boolean,
@@ -406,6 +407,7 @@ export const ProjectView: Component<{
 						<Chip type="general" icon={iconBadge} on:click={slack}>Slack: {this.extras.name || this.data.entrant__slack_id}</Chip>
 						{this.extras.stars !== null ? <Chip type="general" icon={iconStar}>{this.extras.stars}</Chip> : null}
 						{this.extras.forks !== null ? <Chip type="general" icon={iconCallSplit}>{this.extras.forks}</Chip> : null}
+						{this.extras.watchers !== null ? <Chip type="general" icon={iconVisibility}>{this.extras.watchers}</Chip> : null}
 
 						<Chip type="general" icon={iconMenuBook} on:click={readme}>README</Chip>
 						<Chip type="general" icon={iconCode} on:click={code}>Code</Chip>

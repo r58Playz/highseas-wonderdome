@@ -29,5 +29,5 @@ try {
 	document.getElementById('app')!.replaceWith(<App />);
 } catch (err) {
 	document.getElementById('app')!.replaceWith(document.createTextNode("Error while rendering: " + err));
-	console.error(err);
+	console.warn(err);
 }

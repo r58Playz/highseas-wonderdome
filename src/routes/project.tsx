@@ -1,3 +1,8 @@
+import { Button, CardClickable, CheckboxAnim, Chip, Dialog, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
+import { settings } from "../store";
+import { fetch } from "../epoxy";
+import { Matchup, MatchupExtras, Project } from "../api";
+
 import iconBadge from "@ktibow/iconset-material-symbols/badge";
 import iconDirectionsBoat from "@ktibow/iconset-material-symbols/directions-boat";
 import iconMenuBook from "@ktibow/iconset-material-symbols/menu-book";
@@ -5,16 +10,39 @@ import iconCode from "@ktibow/iconset-material-symbols/code";
 import iconLink from "@ktibow/iconset-material-symbols/link";
 import iconPerson from "@ktibow/iconset-material-symbols/person";
 import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
-import { Button, CardClickable, CheckboxAnim, Chip, Dialog, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
-import { settings } from "../store";
-import { fetch } from "../epoxy";
-import { Matchup, Project } from "../api";
+import iconCallSplit from "@ktibow/iconset-material-symbols/call-split";
+import iconStar from "@ktibow/iconset-material-symbols/star";
 
 type ProjectAnalytics = {
 	readmeOpened: boolean,
 	repoOpened: boolean,
 	demoOpened: boolean,
 };
+
+const AnalyticsRow: Component<{ one: boolean, two: boolean, matchup: Matchup, ident: string }> = function() {
+	return <div>
+		<SegmentedButtonContainer>
+			<SegmentedButtonItem
+				type="checkbox"
+				name={`${this.ident}-${this.matchup.signature}`}
+				input={`${this.ident}-${this.matchup.signature}-${this.matchup.one.id}`}
+				bind:checked={use(this.one)}
+				disabled={true}
+			>
+				Left
+			</SegmentedButtonItem>
+			<SegmentedButtonItem
+				type="checkbox"
+				name={`${this.ident}-${this.matchup.signature}`}
+				input={`${this.ident}-${this.matchup.signature}-${this.matchup.two.id}`}
+				bind:checked={use(this.two)}
+				disabled={true}
+			>
+				Right
+			</SegmentedButtonItem>
+		</SegmentedButtonContainer>
+	</div>
+}
 
 export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, open: boolean, remove: () => void, }, {
 	reason: string,
@@ -30,19 +58,18 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 	demoOpenedTwo: boolean,
 	repoOpenedOne: boolean,
 	repoOpenedTwo: boolean,
-}> = function() {
-
+}, { analytics: (project: "one" | "two", clicked: "readme" | "repo" | "demo") => void }> = function() {
 	this.reason = "";
 
 	this.shareVote = settings.shareVote;
 	this.sendToUser = false;
 
-	this.readmeOpenedOne = true;
-	this.readmeOpenedTwo = true;
-	this.repoOpenedOne = true;
-	this.repoOpenedTwo = true;
-	this.demoOpenedOne = true;
-	this.demoOpenedTwo = true;
+	this.readmeOpenedOne = false;
+	this.readmeOpenedTwo = false;
+	this.repoOpenedOne = false;
+	this.repoOpenedTwo = false;
+	this.demoOpenedOne = false;
+	this.demoOpenedTwo = false;
 
 	this.css = `
 		.body {
@@ -71,6 +98,13 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			align-items: center;
 		}
 	`;
+
+	this.analytics = (project, clicked) => {
+		const ident = clicked + "Opened" + project[0].toUpperCase() + project.slice(1);
+		console.log(`analytics event: ${ident}`);
+		// @ts-expect-error
+		this[ident] = true;
+	}
 
 	const getProject = (selected: 1 | 2) => {
 		if (selected == 1) {
@@ -182,66 +216,15 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 					<div class="analytics">
 						<div class="analyticsrow">
 							Opened README:
-							<SegmentedButtonContainer>
-								<SegmentedButtonItem
-									type="checkbox"
-									name={`readme-opened-${this.matchup.signature}`}
-									input={`readme-opened-${this.matchup.signature}-${this.matchup.one.id}`}
-									bind:checked={use(this.readmeOpenedOne)}
-								>
-									Left
-								</SegmentedButtonItem>
-								<SegmentedButtonItem
-									type="checkbox"
-									name={`readme-opened-${this.matchup.signature}`}
-									input={`readme-opened-${this.matchup.signature}-${this.matchup.two.id}`}
-									bind:checked={use(this.readmeOpenedTwo)}
-								>
-									Right
-								</SegmentedButtonItem>
-							</SegmentedButtonContainer>
+							<AnalyticsRow bind:one={use(this.readmeOpenedOne)} bind:two={use(this.readmeOpenedTwo)} matchup={this.matchup} ident="readme" />
 						</div>
 						<div class="analyticsrow">
 							Opened demo:
-							<SegmentedButtonContainer>
-								<SegmentedButtonItem
-									type="checkbox"
-									name={`demo-opened-${this.matchup.signature}`}
-									input={`demo-opened-${this.matchup.signature}-${this.matchup.one.id}`}
-									bind:checked={use(this.demoOpenedOne)}
-								>
-									Left
-								</SegmentedButtonItem>
-								<SegmentedButtonItem
-									type="checkbox"
-									name={`demo-opened-${this.matchup.signature}`}
-									input={`demo-opened-${this.matchup.signature}-${this.matchup.two.id}`}
-									bind:checked={use(this.demoOpenedTwo)}
-								>
-									Right
-								</SegmentedButtonItem>
-							</SegmentedButtonContainer>
+							<AnalyticsRow bind:one={use(this.demoOpenedOne)} bind:two={use(this.demoOpenedTwo)} matchup={this.matchup} ident="demo" />
 						</div>
 						<div class="analyticsrow">
 							Opened repo:
-							<SegmentedButtonContainer>
-								<SegmentedButtonItem
-									type="checkbox"
-									name={`repo-opened-${this.matchup.signature}`}
-									input={`repo-opened-${this.matchup.signature}-${this.matchup.one.id}`}
-									bind:checked={use(this.repoOpenedOne)}
-								>
-									Left
-								</SegmentedButtonItem>
-								<SegmentedButtonItem
-									type="checkbox"
-									name={`repo-opened-${this.matchup.signature}`}
-									input={`repo-opened-${this.matchup.signature}-${this.matchup.two.id}`}
-									bind:checked={use(this.repoOpenedTwo)}
-								>
-									Right
-								</SegmentedButtonItem>
-							</SegmentedButtonContainer>
+							<AnalyticsRow bind:one={use(this.repoOpenedOne)} bind:two={use(this.repoOpenedTwo)} matchup={this.matchup} ident="repo" />
 						</div>
 					</div>
 					<div>These features need you to authorize the vote sharing API.</div>
@@ -293,8 +276,9 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 
 export const ProjectView: Component<{
 	data: Project,
-	slackName: string | null,
+	extras: MatchupExtras,
 	open: () => void
+	"on:analytics": (clicked: "readme" | "repo" | "demo") => void,
 }, {
 	imageOpen: boolean,
 }> = function() {
@@ -347,18 +331,22 @@ export const ProjectView: Component<{
 	const user = new URL(this.data.repo_url).pathname.split("/")[1];
 
 	const readme = (e: Event) => {
+		this["on:analytics"]("readme");
 		e.stopImmediatePropagation();
 		window.open(this.data.readme_url, "_blank");
 	};
 	const code = (e: Event) => {
+		this["on:analytics"]("repo");
 		e.stopImmediatePropagation();
 		window.open(this.data.repo_url, "_blank");
 	};
 	const demo = (e: Event) => {
+		this["on:analytics"]("demo");
 		e.stopImmediatePropagation();
 		window.open(this.data.deploy_url, "_blank");
 	};
 	const slack = (e: Event) => {
+		this["on:analytics"]("demo");
 		e.stopImmediatePropagation();
 		window.open(`https://hackclub.slack.com/app_redirect?channel=${this.data.entrant__slack_id}`, "_blank");
 	}
@@ -386,7 +374,9 @@ export const ProjectView: Component<{
 						<Chip type="general" icon={iconDirectionsBoat}><span class="caps">{this.data.ship_type}</span></Chip>
 						<Chip type="general" icon={iconThumbsUpDown}>{this.data.rating}</Chip>
 						<Chip type="general" icon={iconPerson} on:click={github}>GH: {user}</Chip>
-						<Chip type="general" icon={iconBadge} on:click={slack}>Slack: {this.slackName || this.data.entrant__slack_id}</Chip>
+						<Chip type="general" icon={iconBadge} on:click={slack}>Slack: {this.extras.name || this.data.entrant__slack_id}</Chip>
+						{this.extras.stars !== null ? <Chip type="general" icon={iconStar}>{this.extras.stars}</Chip> : null}
+						{this.extras.forks !== null ? <Chip type="general" icon={iconCallSplit}>{this.extras.forks}</Chip> : null}
 
 						<Chip type="general" icon={iconMenuBook} on:click={readme}>README</Chip>
 						<Chip type="general" icon={iconCode} on:click={code}>Code</Chip>

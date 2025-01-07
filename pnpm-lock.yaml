@@ -18,8 +18,8 @@ importers:
         specifier: ^0.9.2
         version: 0.9.2
       dreamland:
-        specifier: ^0.0.25
-        version: 0.0.25
+        specifier: github:mercuryworkshop/dreamlandjs
+        version: https://codeload.github.com/mercuryworkshop/dreamlandjs/tar.gz/5cc8b1c25f4bad65164bb5b09af6cbfd2f53d1e9
       m3-dreamland:
         specifier: github:mercuryworkshop/m3-dreamland
         version: https://codeload.github.com/mercuryworkshop/m3-dreamland/tar.gz/1582792c276fe747898e3e85c8528cf2d75e0828
@@ -337,8 +337,9 @@ packages:
   commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
 
-  dreamland@0.0.25:
-    resolution: {integrity: sha512-REhB1T/6do8R7nwa/B0+ie0tTWY97cLsfPwmmqSHOMCu2Qw+cVSWhqTDB1Boklqg9Z8qfRkmGU/rknu0R48QWw==}
+  dreamland@https://codeload.github.com/mercuryworkshop/dreamlandjs/tar.gz/5cc8b1c25f4bad65164bb5b09af6cbfd2f53d1e9:
+    resolution: {tarball: https://codeload.github.com/mercuryworkshop/dreamlandjs/tar.gz/5cc8b1c25f4bad65164bb5b09af6cbfd2f53d1e9}
+    version: 0.0.25
 
   esbuild@0.24.0:
     resolution: {integrity: sha512-FuLPevChGDshgSicjisSooU0cemp/sGXR841D5LHMB7mTVOmsEHcAxaH3irL53+8YDIeVNQEySh4DaYU/iuPqQ==}
@@ -764,7 +765,7 @@ snapshots:
 
   commondir@1.0.1: {}
 
-  dreamland@0.0.25: {}
+  dreamland@https://codeload.github.com/mercuryworkshop/dreamlandjs/tar.gz/5cc8b1c25f4bad65164bb5b09af6cbfd2f53d1e9: {}
 
   esbuild@0.24.0:
     optionalDependencies:

@@ -5,7 +5,7 @@ import { IframeSafeList } from "../iframesafelist";
 import iconRefresh from "@ktibow/iconset-material-symbols/refresh";
 import iconSwapHoriz from "@ktibow/iconset-material-symbols/swap-horiz";
 import { ProjectView, SubmitVoteDialog } from "./project";
-import { fetchMatchup, fetchStatus as fetchInfo, Matchup, UserInfo } from "../api";
+import { fetchMatchup, fetchStatus as fetchInfo, Matchup, UserInfo, Airtable, AirtableKeys, fetchPerson, fillMatchup } from "../api";
 
 const Link: Component<{ href: string }, { children: string }> = function() {
 	return <a href={this.href} open="_blank">{this.children}</a>
@@ -14,6 +14,8 @@ const Link: Component<{ href: string }, { children: string }> = function() {
 const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 	selected: 1 | 2,
 	open: boolean,
+
+	submit: ComponentType<typeof SubmitVoteDialog>,
 }> = function() {
 	this.css = `
 		.matchup {
@@ -23,7 +25,8 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 		}
 		.vs {
 			display: flex;
-			align-items: center;
+			flex-direction: column;
+			justify-content: center;
 		}
 	`;
 
@@ -38,11 +41,28 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 	return (
 		<div>
 			<Card type="filled">
-				<SubmitVoteDialog remove={this.remove} bind:selected={use(this.selected)} matchup={this.matchup} bind:open={use(this.open)} />
+				<SubmitVoteDialog
+					remove={this.remove}
+					bind:selected={use(this.selected)}
+					matchup={this.matchup}
+					bind:open={use(this.open)}
+
+					bind:this={use(this.submit)}
+				/>
 				<div class="matchup">
-					<ProjectView data={this.matchup.one} slackName={this.matchup.oneName} open={() => open(1)} />
+					<ProjectView
+						data={this.matchup.one}
+						extras={this.matchup.oneExtras}
+						open={() => open(1)}
+						on:analytics={(x) => { this.submit.analytics("one", x) }}
+					/>
 					<div class="vs m3-font-headline-small"><Icon icon={iconSwapHoriz} /></div>
-					<ProjectView data={this.matchup.two} slackName={this.matchup.twoName} open={() => open(2)} />
+					<ProjectView
+						data={this.matchup.two}
+						extras={this.matchup.twoExtras}
+						open={() => open(2)}
+						on:analytics={(x) => { this.submit.analytics("two", x) }}
+					/>
 				</div>
 			</Card>
 		</div>
@@ -52,6 +72,7 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 export const Home: Component<{}, {
 	matchups: { el: DLElement<typeof MatchupView>, id: string }[]
 	info: UserInfo | null
+	airtable: Airtable | null,
 	loading: boolean,
 	infoLoading: boolean,
 }> = function() {
@@ -88,6 +109,15 @@ export const Home: Component<{}, {
 			width: 100%;
 		}
 
+		.info {
+			display: flex;
+			flex-direction: column;
+		}
+		.info-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1em;
+		}
 		.info-empty {
 			display: flex;
 			align-items: center;
@@ -124,6 +154,7 @@ export const Home: Component<{}, {
 		this.info = null;
 		this.infoLoading = true;
 		this.info = await fetchInfo();
+		this.airtable = (await fetchPerson()).fields;
 		this.infoLoading = false;
 	}
 	const loadOne = async (title: RegExp | null, username: RegExp | null) => {
@@ -136,10 +167,12 @@ export const Home: Component<{}, {
 				!title.test(matchup.matchup.two.title)
 			)) &&
 			(!username || (
-				!(matchup.matchup.oneName && username.test(matchup.matchup.oneName)) &&
-				!(matchup.matchup.twoName && username.test(matchup.matchup.twoName))
+				!(matchup.matchup.oneExtras.name && username.test(matchup.matchup.oneExtras.name)) &&
+				!(matchup.matchup.twoExtras.name && username.test(matchup.matchup.twoExtras.name))
 			))
 		) {
+			matchup.matchup = await fillMatchup(matchup.matchup);
+
 			this.matchups = [...this.matchups, {
 				el: <MatchupView
 					matchup={matchup.matchup}
@@ -200,6 +233,7 @@ export const Home: Component<{}, {
 				A better <Link href="https://highseas.hackclub.com">High Seas</Link> Wonderdome client.
 				Doesn't spam POST requests and minified React errors, loads more than one matchup at once, and also has more info at a glance than the official one.
 				You can also filter out the personal website and tic-tac-toe slop, making it easier to vote on non-filler projects.
+				Additionally, you can view and export your High Seas Airtable entry.
 			</div>
 			<div>
 				This client uses <Link href="https://github.com/mercuryworkshop/wisp-protocol">Wisp</Link> and <Link href="https://github.com/mercuryworkshop/epoxy-tls">epoxy-tls</Link> to securely fetch the data from the client side.
@@ -207,7 +241,7 @@ export const Home: Component<{}, {
 				The Wisp proxy server sees only TLS encrypted data, and you can configure this client to use your own selfhosted Wisp server for more security.
 			</div>
 			<div>
-				Your token (the hs-session cookie, use DevTools -&gt; Application -&gt; Cookies to get it, make sure it is URL-decoded) is needed to fetch matchups and submit votes as you.
+				Your token (the <code>hs-session</code> cookie, use DevTools -&gt; Application -&gt; Cookies to get it, make sure it is URL-decoded) is needed to fetch matchups and submit votes as you.
 			</div>
 
 			<ButtonLink type="text" href="?tinder">Try out tinder/mobile mode!</ButtonLink>
@@ -218,7 +252,7 @@ export const Home: Component<{}, {
 					<div class="settings">
 						<TextField name="Token (hs-session cookie)" bind:value={use(settings.token)} extraOptions={{ type: "password" }} />
 						<TextField name="Wisp Server" bind:value={use(settings.wispServer)} />
-						<TextField name="Number to load" bind:value={use(settings.numToLoad)} />
+						<TextField name="Number to load at once" bind:value={use(settings.numToLoad)} />
 					</div>
 					<ButtonLink type="text" href="https://api.saahild.com/api/highseasships/slack/oauth" extraOptions={{ target: "_blank" }}>
 						Authorize vote sharing API
@@ -233,7 +267,7 @@ export const Home: Component<{}, {
 								type="radio"
 								name="feedback"
 								input="feedback-none"
-								checked={true}
+								checked={use(settings.shareVote, x => x === "none")}
 							>
 								No
 							</SegmentedButtonItem>
@@ -241,6 +275,7 @@ export const Home: Component<{}, {
 								type="radio"
 								name="feedback"
 								input="feedback-public"
+								checked={use(settings.shareVote, x => x === "public")}
 							>
 								Publicly
 							</SegmentedButtonItem>
@@ -248,6 +283,7 @@ export const Home: Component<{}, {
 								type="radio"
 								name="feedback"
 								input="feedback-anonymous"
+								checked={use(settings.shareVote, x => x === "anonymous")}
 							>
 								Anonymously
 							</SegmentedButtonItem>
@@ -304,18 +340,39 @@ export const Home: Component<{}, {
 					<div class="expand" />
 					<Button type="filled" iconType="left" on:click={reloadInfo} disabled={doesNotHaveToken}><Icon icon={iconRefresh} />Load info</Button>
 				</div>
-				{$if(use(this.info, x => !!x),
-					<div class="info">
-						<div>Blessed: {use(this.info!.blessed)}</div>
-						<div>Cursed: {use(this.info!.cursed)}</div>
-						<div>Votes remaining for a pending ship: {use(this.info!.votesRemainingForNextPendingShip)}</div>
-						<div>Doubloons: {use(this.info!.settledTickets)}</div>
-						<div>Referral link: <a href={use(this.info!.referralLink)}>{use(this.info!.referralLink)}</a></div>
-					</div>,
-					<div class="info-empty">
-						<span>User info has not been fetched</span>
-					</div>
-				)}
+				<div class="info-container">
+					{$if(use(this.info, x => !!x),
+						<div class="info">
+							<div>Blessed: {use(this.info!.blessed)}</div>
+							<div>Cursed: {use(this.info!.cursed)}</div>
+							<div>Votes remaining for a pending ship: {use(this.info!.votesRemainingForNextPendingShip)}</div>
+							<div>Doubloons: {use(this.info!.settledTickets)}</div>
+							<div>Referral link: <a href={use(this.info!.referralLink)}>{use(this.info!.referralLink)}</a></div>
+						</div>,
+						<div class="info-empty">
+							<span>User info has not been fetched</span>
+						</div>
+					)}
+					{$if(use(this.airtable, x => !!x),
+						<div class="info">
+							<div>
+								The values below are directly from your Airtable entry.{' '}
+							</div>
+							<div>
+								You can view all the data in your Airtable entry by running <code>await person()</code> in DevTools.
+								Note that this also includes <b>all of your Wonderdome voting reasons</b>.
+							</div>
+							<b>These values may change or disappear at any time.</b>
+							{use(this.airtable, x => {
+								let entries = Object.entries(x || {}).filter(([x, _]) => AirtableKeys.includes(x));
+								entries.sort(([a, _a], [b, _b]) => AirtableKeys.indexOf(a) - AirtableKeys.indexOf(b));
+								return entries.map(([k, v]) => {
+									return <code>{k}: {v}</code>
+								})
+							})}
+						</div>
+					)}
+				</div>
 			</Card>
 
 			<Card type="elevated">
@@ -330,8 +387,19 @@ export const Home: Component<{}, {
 					<IframeSafeList list={use(this.matchups)} class="matchups" />
 					{$if(use(this.matchups, x => x.length !== 0),
 						<div class="end">
-							<Button type="tonal" iconType="left" on:click={loadMore} disabled={doesNotHaveToken}><Icon icon={iconRefresh} />Load even more</Button>
+							<Button
+								type="tonal"
+								iconType="left"
+								on:click={loadMore}
+								disabled={doesNotHaveToken}
+							>
+								<Icon icon={iconRefresh} />
+								Load even more
+							</Button>
 							{$if(use(this.loading), <LinearProgressIndeterminate />)}
+						</div>,
+						<div class="end">
+							No matchups have been fetched
 						</div>
 					)}
 				</div>

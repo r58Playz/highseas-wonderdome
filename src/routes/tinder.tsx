@@ -1,7 +1,7 @@
 import { Button, CircularProgressIndeterminate, Icon } from "m3-dreamland";
 import { ProjectView, SubmitVoteDialog } from "./project";
 import iconSwapVert from "@ktibow/iconset-material-symbols/swap-vert";
-import { fetchMatchup, Matchup } from "../api";
+import { fetchMatchup, fillMatchup, Matchup } from "../api";
 
 export const Tinder: Component<{}, {
 	loading: boolean,
@@ -50,6 +50,7 @@ export const Tinder: Component<{}, {
 			console.log("trying");
 			matchup = await fetchMatchup();
 		}
+		matchup.matchup = await fillMatchup(matchup.matchup);
 		this.matchup = matchup.matchup;
 		this.loading = false;
 	}
@@ -67,10 +68,13 @@ export const Tinder: Component<{}, {
 				<div class="match">
 					{use(this.matchup, x => {
 						if (x) {
-							const dialogOpen = $state({ open: false });
+							const state: Stateful<{
+								open: boolean,
+								el: ComponentType<typeof SubmitVoteDialog>
+							}> = $state({ open: false, el: null!, });
 							const open = (selected: 1 | 2) => {
 								this.selected = selected;
-								dialogOpen.open = true;
+								state.open = true;
 							}
 							// @ts-expect-error
 							return <>
@@ -78,13 +82,25 @@ export const Tinder: Component<{}, {
 									matchup={x}
 									remove={() => { loadNext() }}
 									bind:selected={use(this.selected)}
-									bind:open={use(dialogOpen.open)}
+									bind:open={use(state.open)}
+
+									bind:this={use(state.el)}
 								/>
-								<ProjectView data={x.one} slackName={x.oneName} open={() => open(1)} />
+								<ProjectView
+									data={x.one}
+									extras={x.oneExtras}
+									open={() => open(1)}
+									on:analytics={(x) => { state.el.analytics("one", x) }}
+								/>
 								<div class="vs">
 									<Icon icon={iconSwapVert} />
 								</div>
-								<ProjectView data={x.two} slackName={x.twoName} open={() => open(2)} />
+								<ProjectView
+									data={x.two}
+									extras={x.twoExtras}
+									open={() => open(2)}
+									on:analytics={(x) => { state.el.analytics("two", x) }}
+								/>
 								<Button type="elevated" on:click={() => { loadNext() }}>Both of these suck</Button>
 							</>
 

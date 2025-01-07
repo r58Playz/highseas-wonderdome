@@ -5,7 +5,7 @@ import { IframeSafeList } from "../iframesafelist";
 import iconRefresh from "@ktibow/iconset-material-symbols/refresh";
 import iconSwapHoriz from "@ktibow/iconset-material-symbols/swap-horiz";
 import { ProjectView, SubmitVoteDialog } from "./project";
-import { fetchMatchup, fetchStatus as fetchInfo, Matchup, UserInfo, Airtable, AirtableKeys, fetchPerson, fillMatchup } from "../api";
+import { fetchMatchup, fetchStatus, Matchup, UserInfo, Airtable, AIRTABLE_KEYS, fetchPerson, fillMatchup } from "../api";
 
 export const Link: Component<{ href: string }, { children: string }> = function() {
 	this.css = `
@@ -156,7 +156,7 @@ export const Home: Component<{}, {
 	const reloadInfo = async () => {
 		this.info = null;
 		this.infoLoading = true;
-		this.info = await fetchInfo();
+		this.info = await fetchStatus();
 		this.airtable = (await fetchPerson()).fields;
 		this.infoLoading = false;
 	}
@@ -363,14 +363,14 @@ export const Home: Component<{}, {
 							</div>
 							<div>
 								You can view all the data in your Airtable entry by running <code>await person()</code> in DevTools.
-								Note that this also includes <b>all of your Wonderdome voting reasons</b>.
+								Note that this data also includes <b>all of your Wonderdome voting reasons</b>.
 							</div>
 							<b>These values may change or disappear at any time.</b>
 							{use(this.airtable, x => {
-								let entries = Object.entries(x || {}).filter(([x, _]) => AirtableKeys.includes(x));
-								entries.sort(([a, _a], [b, _b]) => AirtableKeys.indexOf(a) - AirtableKeys.indexOf(b));
+								let entries = Object.entries(x || {}).filter(([x, _]) => AIRTABLE_KEYS.includes(x));
+								entries.sort(([a, _a], [b, _b]) => AIRTABLE_KEYS.indexOf(a) - AIRTABLE_KEYS.indexOf(b));
 								return entries.map(([k, v]) => {
-									return <code>{k}: {v}</code>
+									return <code>{k}: {JSON.stringify(v)}</code>
 								})
 							})}
 						</div>

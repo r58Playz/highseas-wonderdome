@@ -62,26 +62,48 @@ export type AirtableRes = {
 	fields: Airtable,
 }
 
-export const AirtableKeys = [
-	"github_username",
-	"average_ship_rating",
+export const AIRTABLE_KEYS = [
+	"github_username", "contest__doubloons_per_hour",
+
+	"doubloons_granted", "doubloons_paid", "doubloons_received",
+
+	"average_ship_rating", "average_doubloons_per_hour", "aggregated_battle_explanations_length",
+	"daily_hours_logged", "daily_hours_shipped",
+
 	"vote_balance", "vote_count", "vote_count_prior_week",
-	"vote_quality_multiplier", "voter_quality_classification", "voting_trust_factor",
+	"vote_quality_multiplier", "voter_quality_classification",
 	"mean_discordance",
+
+	"voting_trust_factor", "time_trust_factor", "duplicate_explanation_trust_factor",
+	"accordance_coefficient_trust_factor",
+
 	"readme_opened_percentage", "repo_opened_percentage", "demo_opened_percentage",
 ];
 export type Airtable = {
 	github_username: string,
+	contest__doubloons_per_hour: number,
+
+	doubloons_granted: number,
+	doubloons_paid: number,
+	doubloons_received: number,
 
 	average_ship_rating: number,
+	average_doubloons_per_hour: number,
+	aggregated_battle_explanations_length: number,
+	daily_hours_logged: number,
+	daily_hours_shipped: number,
 
 	vote_balance: number,
 	vote_count: number,
 	vote_count_prior_week: number,
 	vote_quality_multiplier: number,
 	voter_quality_classification: string,
-	voting_trust_factor: number,
 	mean_discordance: number,
+
+	voting_trust_factor: number,
+	time_trust_factor: number,
+	duplicate_explanation_trust_factor: number,
+	accordance_coefficient_trust_factor: number,
 
 	readme_opened_percentage: string,
 	repo_opened_percentage: string,

@@ -63,7 +63,7 @@ export type AirtableRes = {
 }
 
 export const AIRTABLE_KEYS = [
-	"github_username", "contest__doubloons_per_hour",
+	"github_username", "contest__doubloons_per_dollar",
 
 	"doubloons_granted", "doubloons_paid", "doubloons_received",
 
@@ -81,7 +81,7 @@ export const AIRTABLE_KEYS = [
 ];
 export type Airtable = {
 	github_username: string,
-	contest__doubloons_per_hour: number,
+	contest__doubloons_per_dollar: number,
 
 	doubloons_granted: number,
 	doubloons_paid: number,

@@ -5,7 +5,7 @@ import { IframeSafeList } from "../iframesafelist";
 import iconRefresh from "@ktibow/iconset-material-symbols/refresh";
 import iconSwapHoriz from "@ktibow/iconset-material-symbols/swap-horiz";
 import { ProjectView, SubmitVoteDialog } from "./project";
-import { fetchMatchup, fetchStatus, Matchup, UserInfo, Airtable, AIRTABLE_KEYS, fetchPerson, fillMatchup } from "../api";
+import { fetchMatchup, fetchStatus, Matchup, UserInfo, fillMatchup } from "../api";
 
 export const Link: Component<{ href: string }, { children: string }> = function() {
 	this.css = `
@@ -55,6 +55,7 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 				<div class="matchup">
 					<ProjectView
 						data={this.matchup.one}
+						sig={this.matchup.signature}
 						extras={this.matchup.oneExtras}
 						open={() => open(1)}
 						on:analytics={(x) => { this.submit.analytics("one", x) }}
@@ -62,6 +63,7 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 					<div class="vs m3-font-headline-small"><Icon icon={iconSwapHoriz} /></div>
 					<ProjectView
 						data={this.matchup.two}
+						sig={this.matchup.signature}
 						extras={this.matchup.twoExtras}
 						open={() => open(2)}
 						on:analytics={(x) => { this.submit.analytics("two", x) }}
@@ -75,7 +77,6 @@ const MatchupView: Component<{ matchup: Matchup, remove: () => void }, {
 export const Home: Component<{}, {
 	matchups: { el: DLElement<typeof MatchupView>, id: string }[]
 	info: UserInfo | null
-	airtable: Airtable | null,
 	loading: boolean,
 	infoLoading: boolean,
 }> = function() {
@@ -157,7 +158,6 @@ export const Home: Component<{}, {
 		this.info = null;
 		this.infoLoading = true;
 		this.info = await fetchStatus();
-		this.airtable = (await fetchPerson()).fields;
 		this.infoLoading = false;
 	}
 	const loadOne = async (title: RegExp | null, username: RegExp | null) => {
@@ -176,7 +176,7 @@ export const Home: Component<{}, {
 		) {
 			matchup.matchup = await fillMatchup(matchup.matchup);
 
-			this.matchups = [...this.matchups, {
+			const add = {
 				el: <MatchupView
 					matchup={matchup.matchup}
 					remove={() => {
@@ -185,7 +185,9 @@ export const Home: Component<{}, {
 					}}
 				/>,
 				id: matchup.id,
-			}];
+			};
+			this.matchups.push(add);
+			this.matchups = this.matchups;
 			return true;
 		} else {
 			console.log("matchup was filtered out: ", matchup);
@@ -227,6 +229,12 @@ export const Home: Component<{}, {
 		}
 	}
 
+	const newColor = () => {
+		const arr = new Uint8Array(3);
+		crypto.getRandomValues(arr);
+		settings.color = [...arr].map(x => x.toString(16).padStart(2, '0')).join('');
+	};
+
 	const doesNotHaveToken = use(settings.token, x => { try { return !JSON.parse(x).slackId } catch (e) { console.warn(e); return true } });
 
 	return (
@@ -260,6 +268,9 @@ export const Home: Component<{}, {
 					<ButtonLink type="text" href="https://api.saahild.com/api/highseasships/slack/oauth" extraOptions={{ target: "_blank" }}>
 						Authorize vote sharing API
 					</ButtonLink>
+					<Button type="tonal" on:click={newColor}>
+						Randomize theme color
+					</Button>
 					<div class="settings" on:change={(e: Event) => {
 						const target = e.target as HTMLInputElement | undefined;
 						settings.shareVote = target!.id.split("-")[1] as any;
@@ -354,25 +365,6 @@ export const Home: Component<{}, {
 						</div>,
 						<div class="info-empty">
 							<span>User info has not been fetched</span>
-						</div>
-					)}
-					{$if(use(this.airtable, x => !!x),
-						<div class="info">
-							<div>
-								The values below are directly from your Airtable entry.{' '}
-							</div>
-							<div>
-								You can view all the data in your Airtable entry by running <code>await person()</code> in DevTools.
-								Note that this data also includes <b>all of your Wonderdome voting reasons</b>.
-							</div>
-							<b>These values may change or disappear at any time.</b>
-							{use(this.airtable, x => {
-								let entries = Object.entries(x || {}).filter(([x, _]) => AIRTABLE_KEYS.includes(x));
-								entries.sort(([a, _a], [b, _b]) => AIRTABLE_KEYS.indexOf(a) - AIRTABLE_KEYS.indexOf(b));
-								return entries.map(([k, v]) => {
-									return <code>{k}: {JSON.stringify(v)}</code>
-								})
-							})}
 						</div>
 					)}
 				</div>

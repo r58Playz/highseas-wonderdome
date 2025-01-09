@@ -5,6 +5,7 @@ import { StyleFromParams } from 'm3-dreamland';
 
 import { Tinder } from './routes/tinder';
 import { Home } from './routes/home';
+import { settings } from './store';
 
 const App: Component<{}, { renderRoot: HTMLElement }> = function() {
 	this.css = `
@@ -19,7 +20,7 @@ const App: Component<{}, { renderRoot: HTMLElement }> = function() {
 	}
 	return (
 		<div>
-			<StyleFromParams scheme="vibrant" contrast={0} color="CBA6F7" />
+			<StyleFromParams scheme="vibrant" contrast={0} color={use(settings.color)} />
 			{component}
 		</div>
 	)

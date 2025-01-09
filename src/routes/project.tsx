@@ -1,7 +1,7 @@
-import { Button, CardClickable, CheckboxAnim, Chip, Dialog, LinearProgressIndeterminate, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
+import { Button, CardClickable, CheckboxAnim, Chip, Dialog, LinearProgressIndeterminate, RadioAnim1, SegmentedButtonContainer, SegmentedButtonItem, TextFieldMultiline } from "m3-dreamland";
 import { settings } from "../store";
 import { fetch } from "../epoxy";
-import { Matchup, MatchupExtras, Project } from "../api";
+import { callAction, Matchup, MatchupExtras, Project } from "../api";
 import { Link } from "./home";
 import { Markdown } from "../markdown";
 
@@ -15,6 +15,7 @@ import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
 import iconCallSplit from "@ktibow/iconset-material-symbols/call-split";
 import iconStar from "@ktibow/iconset-material-symbols/star";
 import iconVisibility from "@ktibow/iconset-material-symbols/visibility";
+import iconFlag from "@ktibow/iconset-material-symbols/flag";
 
 type ProjectAnalytics = {
 	readmeOpened: boolean,
@@ -45,6 +46,113 @@ const AnalyticsRow: Component<{ one: boolean, two: boolean, matchup: Matchup, id
 			</SegmentedButtonItem>
 		</SegmentedButtonContainer>
 	</div>
+}
+
+const FraudRadio: Component<{ reason: string, id: string, type: string, disabled: boolean }, { el: HTMLElement }> = function() {
+	this.css = `
+		display: flex;
+		gap: 1em;
+	`;
+
+	this.mount = () => {
+		if (this.reason === this.type) {
+			this.el.click();
+		}
+	};
+
+	return (
+		<label for={`fraud-reason-${this.id}-${this.reason}`}>
+			<RadioAnim1>
+				<input
+					type="radio"
+					id={`fraud-reason-${this.id}-${this.reason}`}
+					name={`fraud-reason-${this.id}`}
+					on:change={() => this.type = this.reason}
+
+					disabled={use(this.disabled)}
+
+					bind:this={use(this.el)}
+				/>
+			</RadioAnim1>
+			{this.reason}
+		</label>
+	)
+}
+
+export const FraudDialog: Component<{
+	id: string,
+	sig: string,
+	name: string,
+	open: boolean
+}, {
+	type: string,
+	reason: string,
+	loading: boolean,
+	submitDisabled: boolean
+}> = function() {
+	this.css = `
+		.body {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5em;
+			align-items: stretch;
+		}
+		.body .TextFieldMultiline-m3-container {
+			width: 100%;
+		}
+		.buttons {
+			display: flex;
+			gap: 1em;
+		}
+
+		.reasons {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5em;
+		}
+	`;
+
+	this.type = "Suspected fraud";
+	this.reason = "";
+	this.loading = false;
+
+	const submit = async () => {
+		this.loading = true;
+		const args = [{ id: this.id }, this.type, this.reason];
+		console.log(`await callAction("src/app/harbor/battles/fraud-utils.ts", "sendFraudReport", { auth: true, args: ${JSON.stringify(args)} })`);
+		console.log(await callAction("src/app/harbor/battles/fraud-utils.ts", "sendFraudReport", { auth: true, args: args }));
+		this.loading = false;
+		this.open = false;
+	};
+
+	useChange([this.reason, this.loading], () => {
+		this.submitDisabled = this.reason.length === 0 || this.loading;
+	});
+
+	return (
+		<div>
+			<Dialog
+				headline={`Submit fraud report for "${this.name}"`}
+				bind:open={use(this.open)}
+				closeOnClick={false}
+			>
+				<div class="body">
+					<div class="reasons">
+						<FraudRadio bind:type={use(this.type)} disabled={use(this.loading)} id={`${this.sig}-${this.id}`} reason="Incomplete README" />
+						<FraudRadio bind:type={use(this.type)} disabled={use(this.loading)} id={`${this.sig}-${this.id}`} reason="No screenshot" />
+						<FraudRadio bind:type={use(this.type)} disabled={use(this.loading)} id={`${this.sig}-${this.id}`} reason="No demo link" />
+						<FraudRadio bind:type={use(this.type)} disabled={use(this.loading)} id={`${this.sig}-${this.id}`} reason="Suspected fraud" />
+						<FraudRadio bind:type={use(this.type)} disabled={use(this.loading)} id={`${this.sig}-${this.id}`} reason="Wrong repo" />
+					</div>
+					<TextFieldMultiline name="Reason" bind:value={use(this.reason)} />
+				</div>
+				<div class="buttons">
+					<Button disabled={use(this.loading)} type="filled" on:click={() => this.open = false}>Close</Button>
+					<Button disabled={use(this.submitDisabled)} type="tonal" on:click={submit}>Submit</Button>
+				</div>
+			</Dialog>
+		</div>
+	)
 }
 
 export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, open: boolean, remove: () => void, }, {
@@ -281,12 +389,14 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 
 export const ProjectView: Component<{
 	data: Project,
+	sig: string,
 	extras: MatchupExtras,
 	open: () => void
 	"on:analytics": (clicked: "readme" | "repo" | "demo") => void,
 }, {
 	imageOpen: boolean,
 	readmeOpen: boolean,
+	fraudOpen: boolean,
 }> = function() {
 	this.css = `
 		flex: 1;
@@ -338,6 +448,7 @@ export const ProjectView: Component<{
 
 	this.imageOpen = false;
 	this.readmeOpen = false;
+	this.fraudOpen = false;
 
 	const user = new URL(this.data.repo_url).pathname.split("/")[1];
 
@@ -369,6 +480,10 @@ export const ProjectView: Component<{
 		e.stopImmediatePropagation();
 		this.imageOpen = true;
 	}
+	const report = (e: Event) => {
+		e.stopImmediatePropagation();
+		this.fraudOpen = true;
+	}
 
 	return (
 		<div>
@@ -397,6 +512,7 @@ export const ProjectView: Component<{
 					<Button type="tonal" on:click={() => this.readmeOpen = false}>Close</Button>
 				</div>
 			</Dialog>
+			<FraudDialog id={this.data.id} sig={this.sig} name={this.data.title} bind:open={use(this.fraudOpen)} />
 			<CardClickable type="elevated" on:click={this.open}>
 				<div class="matchup">
 					<div class="m3-font-title-large">{this.data.title}</div>
@@ -412,6 +528,7 @@ export const ProjectView: Component<{
 						<Chip type="general" icon={iconMenuBook} on:click={readme}>README</Chip>
 						<Chip type="general" icon={iconCode} on:click={code}>Code</Chip>
 						<Chip type="general" icon={iconLink} on:click={demo}>Demo</Chip>
+						<Chip type="general" icon={iconFlag} on:click={report}>Report</Chip>
 					</div>
 
 					<div class="expand" />

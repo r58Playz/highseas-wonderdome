@@ -56,60 +56,6 @@ export type UserInfo = {
 	preexistingUser: boolean,
 };
 
-export type AirtableRes = {
-	id: string,
-	createdTime: string,
-	fields: Airtable,
-}
-
-export const AIRTABLE_KEYS = [
-	"github_username", "contest__doubloons_per_dollar",
-
-	"doubloons_granted", "doubloons_paid", "doubloons_received",
-
-	"average_ship_rating", "average_doubloons_per_hour", "aggregated_battle_explanations_length",
-	"daily_hours_logged", "daily_hours_shipped",
-
-	"vote_balance", "vote_count", "vote_count_prior_week",
-	"vote_quality_multiplier", "voter_quality_classification",
-	"mean_discordance",
-
-	"voting_trust_factor", "time_trust_factor", "duplicate_explanation_trust_factor",
-	"accordance_coefficient_trust_factor",
-
-	"readme_opened_percentage", "repo_opened_percentage", "demo_opened_percentage",
-];
-export type Airtable = {
-	github_username: string,
-	contest__doubloons_per_dollar: number,
-
-	doubloons_granted: number,
-	doubloons_paid: number,
-	doubloons_received: number,
-
-	average_ship_rating: number,
-	average_doubloons_per_hour: number,
-	aggregated_battle_explanations_length: number,
-	daily_hours_logged: number,
-	daily_hours_shipped: number,
-
-	vote_balance: number,
-	vote_count: number,
-	vote_count_prior_week: number,
-	vote_quality_multiplier: number,
-	voter_quality_classification: string,
-	mean_discordance: number,
-
-	voting_trust_factor: number,
-	time_trust_factor: number,
-	duplicate_explanation_trust_factor: number,
-	accordance_coefficient_trust_factor: number,
-
-	readme_opened_percentage: string,
-	repo_opened_percentage: string,
-	demo_opened_percentage: string,
-};
-
 async function fetchSlackName(id: string): Promise<string | null> {
 	const info = await fetch(`https://cachet.dunkirk.sh/users/${id}`).then(r => r.json());
 	if (!info.displayName) {
@@ -197,8 +143,10 @@ export async function fillMatchup(matchup: Matchup): Promise<Matchup> {
 	if (oneGithub) matchup.oneExtras = Object.assign(matchup.oneExtras, oneGithub);
 	if (twoGithub) matchup.twoExtras = Object.assign(matchup.twoExtras, twoGithub);
 
-	matchup.oneExtras.readme = await tryFetchText(matchup.one.readme_url);
-	matchup.twoExtras.readme = await tryFetchText(matchup.two.readme_url);
+	if (matchup.one.readme_url.includes("raw.githubusercontent.com"))
+		matchup.oneExtras.readme = await tryFetchText(matchup.one.readme_url);
+	if (matchup.two.readme_url.includes("raw.githubusercontent.com"))
+		matchup.twoExtras.readme = await tryFetchText(matchup.two.readme_url);
 
 	return matchup;
 }
@@ -218,12 +166,12 @@ function cookieHeader(): string {
 		"ships=%5B%5D";
 }
 
-async function callAction(
+export async function callAction(
 	path: string,
 	name: string,
 	info: {
 		actionPath?: string,
-		args?: string[],
+		args?: any[],
 		auth: boolean,
 	}
 ) {
@@ -249,20 +197,3 @@ export async function fetchStatus(): Promise<UserInfo> {
 	const components = await callAction("src/app/utils/airtable.ts", "safePerson", { auth: true });
 	return components[1] as any;
 };
-
-export async function fetchPerson(): Promise<AirtableRes> {
-	const res = await fetch("https://highseas.hackclub.com/", {
-		"headers": {
-			"accept": "text/x-component",
-			"content-type": "text/plain;charset=UTF-8",
-			"next-action": await getActionHash("src/app/utils/data.ts", "person"),
-			"cookie": cookieHeader()
-		},
-		"body": JSON.stringify([]),
-		"method": "POST"
-	}).then(r => r.text());
-	const components = res.split('\n').map(x => x.substring(x.indexOf(':') + 1));
-	return JSON.parse(`{"id":"` + components[components.length - 2].split(`{"id":"`)[1]);
-}
-
-(self as any).person = fetchPerson;

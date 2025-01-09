@@ -5,6 +5,7 @@ export let settings: Stateful<{
 	epoxyVersion: string,
 	numToLoad: string,
 	token: string,
+	color: string,
 
 	shareVote: "none" | "public" | "anonymous",
 
@@ -16,6 +17,7 @@ export let settings: Stateful<{
 		epoxyVersion: epoxyVersion,
 		numToLoad: "10",
 		token: "",
+		color: "CBA6F7",
 
 		shareVote: "none",
 
@@ -28,6 +30,7 @@ export let settings: Stateful<{
 if (!settings.titleFilter) settings.titleFilter = "";
 if (!settings.usernameFilter) settings.usernameFilter = "";
 if (!settings.shareVote) settings.shareVote = "none";
+if (!settings.color) settings.color = "CBA6F7";
 
 // @ts-ignore
 window.settings = settings;

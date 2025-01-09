@@ -88,6 +88,7 @@ export const Tinder: Component<{}, {
 								/>
 								<ProjectView
 									data={x.one}
+									sig={this.matchup.signature}
 									extras={x.oneExtras}
 									open={() => open(1)}
 									on:analytics={(x) => { state.el.analytics("one", x) }}
@@ -97,6 +98,7 @@ export const Tinder: Component<{}, {
 								</div>
 								<ProjectView
 									data={x.two}
+									sig={this.matchup.signature}
 									extras={x.twoExtras}
 									open={() => open(2)}
 									on:analytics={(x) => { state.el.analytics("two", x) }}

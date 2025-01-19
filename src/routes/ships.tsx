@@ -191,6 +191,10 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 		.desc {
 			white-space: pre-wrap;
 		}
+
+		.CardClickable-m3-container {
+			width: 100%;
+		}
 	`;
 
 	this.detailsOpen = false;

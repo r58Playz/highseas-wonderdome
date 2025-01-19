@@ -6,6 +6,7 @@ import { StyleFromParams } from 'm3-dreamland';
 import { Tinder } from './routes/tinder';
 import { Home } from './routes/home';
 import { settings } from './store';
+import { Shipyard } from './routes/ships';
 
 const App: Component<{}, { renderRoot: HTMLElement }> = function() {
 	this.css = `
@@ -15,6 +16,8 @@ const App: Component<{}, { renderRoot: HTMLElement }> = function() {
 	let component;
 	if (new URLSearchParams(location.search).has("tinder")) {
 		component = <Tinder />
+	} else if (new URLSearchParams(location.search).has("ships")) {
+		component = <Shipyard />
 	} else {
 		component = <Home />
 	}

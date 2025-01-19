@@ -256,6 +256,7 @@ export const Home: Component<{}, {
 			</div>
 
 			<ButtonLink type="text" href="?tinder">Try out tinder/mobile mode!</ButtonLink>
+			<ButtonLink type="text" href="?ships">Try out the shipyard!</ButtonLink>
 
 			<Card type="elevated">
 				<div class="settings-container">

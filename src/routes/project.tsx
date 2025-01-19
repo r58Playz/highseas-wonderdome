@@ -266,15 +266,6 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			},
 		};
 		this.loading = true;
-		const ret = await fetch("https://highseas.hackclub.com/api/battles/vote", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"Cookie": `hs-session=${encodeURIComponent(settings.token)}`
-			},
-			body: JSON.stringify(body),
-		}).then(r => r.text());
-
 		if (this.shareVote !== "none") {
 			fetch("https://api.saahild.com/api/highseasships/send_vote", {
 				method: "POST",
@@ -296,11 +287,24 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 				console.log("api.saahild.com finally returned");
 			});
 		}
+		const ret = await fetch("https://highseas.hackclub.com/api/battles/vote", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Cookie": `hs-session=${encodeURIComponent(settings.token)}`
+			},
+			body: JSON.stringify(body),
+		}).then(r => r.text());
 
 		console.log("Submitted vote: ", getProject(this.selected).id, getOtherProject(this.selected).id, ret);
 		this.loading = false;
 		close();
 		setTimeout(this.remove, 100);
+	}
+
+	const impatient = () => {
+		close();
+		this.remove();
 	}
 
 	const notEnoughWords = use(this.reason, x => x.trim().split(" ").length < 10);
@@ -379,6 +383,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 					</div>
 				</div>
 				<div class="buttons">
+					{$if(use(this.loading), <Button type="text" on:click={impatient}>I'm impatient</Button>)}
 					<Button type="tonal" on:click={close} disabled={use(this.loading)}>Close</Button>
 					<Button type="filled" on:click={submit} disabled={use(this.submitdisabled)}>Submit</Button>
 				</div>

@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ktibow/iconset-material-symbols": "^0.0.1733470085",
+    "@ktibow/iconset-material-symbols": "^0.0.1737616357",
     "@mercuryworkshop/epoxy-tls": "2.1.17-1",
     "@rsc-parser/react-client": "^0.9.2",
     "dompurify": "^3.2.3",
@@ -22,6 +22,6 @@
   },
   "devDependencies": {
     "typescript": "^5.7.3",
-    "vite": "^6.0.7"
+    "vite": "^6.0.11"
   }
 }

@@ -113,16 +113,18 @@ const EditShip: Component<{
 
 	const update = async () => {
 		this.loading = true;
-		const ret = await callAction("src/app/harbor/shipyard/ship-utils.ts", "updateShip", { auth: true, args: [{
-			id: this.id,
-			title: this.title,
-			repoUrl: this.repoUrl,
-			readmeUrl: this.readmeUrl,
-			deployUrl: this.deployUrl,
-			screenshotUrl: this.screenshotUrl,
-			updateDescription: this.updateDescription,
-			yswsType: this.yswsType,
-		}]});
+		const ret = await callAction("src/app/harbor/shipyard/ship-utils.ts", "updateShip", {
+			auth: true, args: [{
+				id: this.id,
+				title: this.title,
+				repoUrl: this.repoUrl,
+				readmeUrl: this.readmeUrl,
+				deployUrl: this.deployUrl,
+				screenshotUrl: this.screenshotUrl,
+				updateDescription: this.updateDescription,
+				yswsType: this.yswsType,
+			}]
+		});
 		console.log(ret);
 		this.loading = false;
 		this.open = false;
@@ -200,6 +202,13 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 	this.detailsOpen = false;
 	this.editOpen = false;
 
+	let shipType;
+	if (this.ship.shipStatus === "staged") {
+		shipType = "Staged ship"
+	} else {
+		shipType = this.updateIdx === 0 ? "Root ship" : `Update ${this.updateIdx}`;
+	}
+
 	return (
 		<div>
 			<div class="details-dialog">
@@ -236,14 +245,16 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 					<div class={this.direct ? "m3-font-title-large" : "m3-font-title-medium"}>{this.ship.title}</div>
 					<div class="chips">
 						<Chip type="general" icon={iconUpdate}>
-							{this.updateIdx === 0 ? "Root ship" : `Update ${this.updateIdx}`}
+							{shipType}
 						</Chip>
 						<Chip type="general" icon={iconTimer}>
-							{(this.ship.credited_hours || 0).toFixed(2)}
+							{this.ship.shipStatus === "shipped" ? (this.ship.credited_hours || 0).toFixed(2) : "Pending"}
 						</Chip>
-						<Chip type="general" icon={iconPaid}>
-							{this.ship.paidOut ? this.ship.doubloonPayout : `${10 - this.ship.matchups_count} matchups left`}
-						</Chip>
+						{this.ship.shipStatus === "shipped" ?
+							<Chip type="general" icon={iconPaid}>
+								{this.ship.paidOut ? this.ship.doubloonPayout : `${10 - this.ship.matchups_count} matchups left`}
+							</Chip>
+							: null}
 						<Chip type="general" icon={iconCalendarMonth}>{new Date(this.ship.createdTime).toLocaleString()}</Chip>
 						{this.ship.isInYswsBase ? <Chip type="general" icon={iconTrophy}>Golden Ship</Chip> : null}
 						<Chip type="general" on:click={(e) => { e.stopImmediatePropagation(); this.detailsOpen = true }}>Details</Chip>
@@ -255,10 +266,10 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 								<div class="m3-font-title-small">Update Description</div>
 								<div class="desc">{this.ship.updateDescription}</div>
 							</div> : null}
-							<div>
+							{this.ship.feedback ? <div>
 								<div class="m3-font-title-small">AI Feedback</div>
 								{this.ship.feedback}
-							</div>
+							</div> : null}
 						</div>
 					</div>
 				</div>
@@ -269,9 +280,11 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 
 export const Shipyard: Component<{}, {
 	ships: ShipGroup[],
+	staged: ApiShip[],
 	loading: boolean,
 }> = function() {
 	this.ships = [];
+	this.staged = [];
 	this.loading = false;
 
 	this.css = `
@@ -305,8 +318,11 @@ export const Shipyard: Component<{}, {
 		const id = JSON.parse(settings.token).slackId;
 		const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });
 
-		const ships: ApiShip[] = res[1];
+		let ships: ApiShip[] = res[1];
 		ships.sort((a, b) => a.autonumber - b.autonumber);
+
+		const staged = ships.filter(x => x.shipStatus === "staged");
+		ships = ships.filter(x => x.shipStatus === "shipped");
 
 		const shipGroups: ShipGroup[] = [];
 
@@ -341,6 +357,7 @@ export const Shipyard: Component<{}, {
 
 		shipGroups.sort((a, b) => +b.created - +a.created);
 		this.ships = shipGroups;
+		this.staged = staged;
 		this.loading = false;
 	};
 
@@ -351,6 +368,12 @@ export const Shipyard: Component<{}, {
 			<Button type="tonal" on:click={load}>Load</Button>
 			{$if(use(this.loading), <LinearProgressIndeterminate />)}
 
+			{$if(use(this.staged.length, x => x !== 0), <div class="m3-font-headline-medium">Staged</div>)}
+			<div class="ship-groups">
+				{use(this.staged, x => x.map(x => <Ship ship={x} updateIdx={0} direct={true} reload={load} />))}
+			</div>
+
+			{$if(use(this.ships.length, x => x !== 0), <div class="m3-font-headline-medium">Shipped</div>)}
 			<div class="ship-groups">
 				{use(this.ships, x => x.map(x => {
 					if (x.ships.length === 1) {

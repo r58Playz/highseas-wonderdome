@@ -158,7 +158,6 @@ export const FraudDialog: Component<{
 export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, open: boolean, remove: () => void, }, {
 	reason: string,
 	loading: boolean
-	submitdisabled: boolean,
 
 	shareVote: "none" | "public" | "anonymous",
 	sendToUser: boolean,
@@ -169,7 +168,11 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 	demoOpenedTwo: boolean,
 	repoOpenedOne: boolean,
 	repoOpenedTwo: boolean,
-}, { analytics: (project: "one" | "two", clicked: "readme" | "repo" | "demo") => void }> = function() {
+}, {
+	analytics: (project: "one" | "two", clicked: "readme" | "repo" | "demo") => void
+	submitDisabled: boolean,
+	error: string,
+}> = function() {
 	this.reason = "";
 
 	this.shareVote = settings.shareVote;
@@ -287,16 +290,37 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 				console.log("api.saahild.com finally returned");
 			});
 		}
-		const ret = await fetch("https://highseas.hackclub.com/api/battles/vote", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"Cookie": `hs-session=${encodeURIComponent(settings.token)}`
-			},
-			body: JSON.stringify(body),
-		}).then(r => r.text());
 
-		console.log("Submitted vote: ", getProject(this.selected).id, getOtherProject(this.selected).id, ret);
+		const trySubmitVote = async () => {
+			const ret = await fetch("https://highseas.hackclub.com/api/battles/vote", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"Cookie": `hs-session=${encodeURIComponent(settings.token)}`
+				},
+				body: JSON.stringify(body),
+			}).then(r => r.text());
+			console.log("Tried to submit vote: ", getProject(this.selected).id, getOtherProject(this.selected).id, ret);
+
+			return ret;
+		}
+
+		while (true) {
+			const ret = await trySubmitVote();
+			let res;
+			try {
+				res = JSON.parse(ret);
+			} catch {
+				this.error = ret;
+				continue;
+			}
+			console.log("Really submitted vote: ", getProject(this.selected).id, getOtherProject(this.selected).id, res);
+			if (!res.ok) {
+				this.error = ret;
+			}
+			break;
+		}
+
 		this.loading = false;
 		close();
 		setTimeout(this.remove, 100);
@@ -309,8 +333,8 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 
 	const notEnoughWords = use(this.reason, x => x.trim().split(" ").length < 10);
 
-	useChange([notEnoughWords, this.loading], () => {
-		this.submitdisabled = notEnoughWords.value || this.loading;
+	useChange([notEnoughWords, this.loading, this.error], () => {
+		this.submitDisabled = notEnoughWords.value || this.loading || !!this.error;
 	});
 	useChange([this.open], () => {
 		this.reason = "";
@@ -326,6 +350,11 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			>
 				<div class="body">
 					{$if(use(this.loading), <LinearProgressIndeterminate />)}
+					{use(this.error, x => {
+						if (x) {
+							return <pre>{x}</pre>
+						}
+					})}
 					<div>Your reason must be at least 10 words.</div>
 					<TextFieldMultiline name="Reason" bind:value={use(this.reason)} error={notEnoughWords} />
 					<div class="analytics">
@@ -385,7 +414,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 				<div class="buttons">
 					{$if(use(this.loading), <Button type="text" on:click={impatient}>I'm impatient</Button>)}
 					<Button type="tonal" on:click={close} disabled={use(this.loading)}>Close</Button>
-					<Button type="filled" on:click={submit} disabled={use(this.submitdisabled)}>Submit</Button>
+					<Button type="filled" on:click={submit} disabled={use(this.submitDisabled)}>Submit</Button>
 				</div>
 			</Dialog>
 		</div>

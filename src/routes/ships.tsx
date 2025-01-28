@@ -251,7 +251,7 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 							{shipType}
 						</Chip>
 						<Chip type="general" icon={iconTimer}>
-							{this.ship.shipStatus === "shipped" ? (this.ship.credited_hours || 0).toFixed(2) : "Pending"}
+							{this.ship.shipStatus === "shipped" ? (this.ship.credited_hours || 0).toFixed(2) : "Pending ship"}
 						</Chip>
 						{this.ship.shipStatus === "shipped" ?
 							<Chip type="general" icon={iconPaid}>

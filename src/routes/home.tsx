@@ -392,6 +392,15 @@ export const Home: Component<{}, {
 								<Icon icon={iconRefresh} />
 								Load even more
 							</Button>
+
+							{use(this.info, (x: UserInfo | null) => {
+								if (x && x.votesRemainingForNextPendingShip !== 0) {
+									return `${x.votesRemainingForNextPendingShip} votes remaining!`;
+								} else {
+									return null;
+								}
+							})}
+
 							{$if(use(this.loading), <LinearProgressIndeterminate />)}
 						</div>,
 						<div class="end">

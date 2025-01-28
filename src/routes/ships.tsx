@@ -314,6 +314,7 @@ export const Shipyard: Component<{}, {
 
 	const load = async () => {
 		this.ships = [];
+		this.staged = [];
 		this.loading = true;
 		const id = JSON.parse(settings.token).slackId;
 		const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });

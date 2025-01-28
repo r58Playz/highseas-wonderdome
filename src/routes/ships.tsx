@@ -7,6 +7,7 @@ import iconTimer from "@ktibow/iconset-material-symbols/timer";
 import iconCalendarMonth from "@ktibow/iconset-material-symbols/calendar-month";
 import iconTrophy from "@ktibow/iconset-material-symbols/trophy";
 import iconUpdate from "@ktibow/iconset-material-symbols/update";
+import iconThumbsUpDown from "@ktibow/iconset-material-symbols/thumbs-up-down";
 
 type ShipType = 'project' | 'update'
 type ShipStatus = 'shipped' | 'staged' | 'deleted'
@@ -209,6 +210,8 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 		shipType = this.updateIdx === 0 ? "Root ship" : `Update ${this.updateIdx}`;
 	}
 
+	const rating = ((this.ship.doubloonPayout) / (this.ship.credited_hours || 0)) * 100 / 25;
+
 	return (
 		<div>
 			<div class="details-dialog">
@@ -253,6 +256,16 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 						{this.ship.shipStatus === "shipped" ?
 							<Chip type="general" icon={iconPaid}>
 								{this.ship.paidOut ? this.ship.doubloonPayout : `${10 - this.ship.matchups_count} matchups left`}
+							</Chip>
+							: null}
+						{this.ship.shipStatus === "shipped" && this.ship.paidOut ?
+							<Chip type="general" icon={iconPaid}>
+								{(this.ship.doubloonPayout / (this.ship.credited_hours || 0)).toFixed(2)}/hr
+							</Chip>
+							: null}
+						{this.ship.shipStatus === "shipped" && this.ship.paidOut ?
+							<Chip type="general" icon={iconThumbsUpDown}>
+								{rating.toFixed(2)}% Rating
 							</Chip>
 							: null}
 						<Chip type="general" icon={iconCalendarMonth}>{new Date(this.ship.createdTime).toLocaleString()}</Chip>
@@ -380,6 +393,8 @@ export const Shipyard: Component<{}, {
 					if (x.ships.length === 1) {
 						return <Ship ship={x.ships[0]} updateIdx={0} direct={true} reload={load} />;
 					}
+
+					const rating = ((x.total_doubloons) / x.total_hours) * 100 / 25;
 					return (
 						<Card type="elevated">
 							<div class="ship-group">
@@ -387,6 +402,8 @@ export const Shipyard: Component<{}, {
 								<div class="chips">
 									<Chip type="general" icon={iconTimer}>{x.total_hours.toFixed(2)}</Chip>
 									<Chip type="general" icon={iconPaid}>{x.total_doubloons}</Chip>
+									<Chip type="general" icon={iconPaid}>{(x.total_doubloons / x.total_hours).toFixed(2)}/hr</Chip>
+									<Chip type="general" icon={iconThumbsUpDown}>{rating.toFixed(2)}% Rating</Chip>
 									<Chip type="general" icon={iconCalendarMonth}>{x.created.toLocaleDateString()}</Chip>
 									{x.golden ? <Chip type="general" icon={iconTrophy}>Golden Ship</Chip> : null}
 								</div>

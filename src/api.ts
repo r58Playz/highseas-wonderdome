@@ -57,16 +57,21 @@ export type UserInfo = {
 };
 
 async function fetchSlackName(id: string): Promise<string | null> {
-	const info = await fetch(`https://cachet.dunkirk.sh/users/${id}`).then(r => r.json());
-	if (!info.displayName) {
-		console.warn("failed to fetch from cachet: ", info);
+	try {
+		const info = await fetch(`https://cachet.dunkirk.sh/users/${id}`).then(r => r.json());
+		if (!info.displayName) {
+			console.warn("failed to fetch from cachet: ", info);
+			return null;
+		}
+		if (info.displayName.includes("https://")) {
+			console.log(`slackid ${id} has the displayName bug: `, info);
+			return null;
+		}
+		return info.displayName;
+	} catch (err) {
+		console.warn("cachet died: ", err);
 		return null;
 	}
-	if (info.displayName.includes("https://")) {
-		console.log(`slackid ${id} has the displayName bug: `, info);
-		return null;
-	}
-	return info.displayName;
 }
 
 async function tryFetchText(url: string): Promise<string | null> {
@@ -99,7 +104,7 @@ async function fetchGithubStats(url: string): Promise<{ stars: number, watchers:
 
 export async function fetchMatchup(): Promise<{ matchup: Matchup, id: string } | null> {
 	const matchupText = await fetch("https://highseas.hackclub.com/api/battles/matchups", {
-		headers: { "Cookie": `hs-session=${encodeURIComponent(settings.token)}` }
+		headers: { cookie: `hs-session=${encodeURIComponent(settings.token)}` }
 	}).then(r => r.text());
 	let matchup;
 	try {

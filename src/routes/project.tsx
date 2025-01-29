@@ -459,10 +459,12 @@ export const ProjectView: Component<{
 
 		.screenshot {
 			max-width: 100%;
+			max-height: 16rem;
 			height: auto;
-			max-height: 35vh;
-			object-fit: contain;
+			width: auto;
+
 			z-index: 100;
+			align-self: center;
 		}
 		dialog {
 			max-width: 90vw !important;

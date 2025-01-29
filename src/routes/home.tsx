@@ -235,7 +235,13 @@ export const Home: Component<{}, {
 		settings.color = [...arr].map(x => x.toString(16).padStart(2, '0')).join('');
 	};
 
-	const doesNotHaveToken = use(settings.token, x => { try { return !JSON.parse(x).slackId } catch (e) { console.warn(e); return true } });
+	const doesNotHaveToken = use(settings.token, x => {
+		if (x.startsWith("%7B")) {
+			settings.token = decodeURIComponent(settings.token);
+			return false;
+		}
+		try { return !JSON.parse(x).slackId } catch (e) { console.warn(e); return true }
+	});
 
 	return (
 		<div>
@@ -252,7 +258,7 @@ export const Home: Component<{}, {
 				The Wisp proxy server sees only TLS encrypted data, and you can configure this client to use your own selfhosted Wisp server for more security.
 			</div>
 			<div>
-				Your token (the <code>hs-session</code> cookie, use DevTools -&gt; Application -&gt; Cookies to get it, make sure it is URL-decoded) is needed to fetch matchups and submit votes as you.
+				Your token (the <code>hs-session</code> cookie, use DevTools -&gt; Application -&gt; Cookies to get it) is needed to fetch matchups and submit votes as you.
 			</div>
 
 			<ButtonLink type="text" href="?tinder">Try out tinder/mobile mode!</ButtonLink>

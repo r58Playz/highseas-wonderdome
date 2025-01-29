@@ -195,7 +195,15 @@ export const Home: Component<{}, {
 		}
 	}
 	const retryOne = async (title: RegExp | null, username: RegExp | null) => {
-		while (!(await loadOne(title, username))) {
+		const catchOne = async () => {
+			try {
+				return await loadOne(title, username)
+			} catch (err) {
+				console.warn("error while retrying", err);
+				return false;
+			}
+		};
+		while (!(await catchOne())) {
 			await new Promise(r => setTimeout(r, 50));
 			console.log("retrying once");
 		}
@@ -211,7 +219,7 @@ export const Home: Component<{}, {
 			await new Promise(r => setTimeout(r, 50));
 			promises.push(retryOne(title, username));
 		}
-		await Promise.all(promises).catch(() => this.loading = false);
+		await Promise.all(promises);
 
 		this.loading = false;
 	}

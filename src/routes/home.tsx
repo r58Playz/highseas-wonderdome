@@ -203,9 +203,12 @@ export const Home: Component<{}, {
 				return false;
 			}
 		};
+		let refetchCount = 0;
 		while (!(await catchOne())) {
-			await new Promise(r => setTimeout(r, 50));
-			console.log("retrying once");
+			const timeout = 10 * refetchCount + 50;
+			console.log(`retrying once: refetchCount ${refetchCount}; timeout ${timeout}`);
+			await new Promise(r => setTimeout(r, timeout));
+			refetchCount++;
 		}
 	}
 	const loadMore = async () => {

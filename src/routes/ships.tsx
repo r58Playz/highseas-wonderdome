@@ -382,6 +382,16 @@ export const Shipyard: Component<{}, {
 			<Button type="tonal" on:click={load}>Load</Button>
 			{$if(use(this.loading), <LinearProgressIndeterminate />)}
 
+			{$if(use(this.ships.length, x => x !== 0), <div>
+				<div class="m3-font-headline-medium">Stats</div>
+				<ul>
+					<li>Total hours shipped: {use(this.ships, x => x.reduce((acc, x) => acc + x.total_hours, 0).toFixed(2))}</li>
+					<li>Total doubloons earned: {use(this.ships, x => x.reduce((acc, x) => acc + x.total_doubloons, 0))}</li>
+					<li>Total ships shipped: {use(this.ships, x => x.length)} ({use(this.ships, x => x.flatMap(x => x.ships).length)} including updates)</li>
+				</ul>
+			</div>
+			)}
+
 			{$if(use(this.staged.length, x => x !== 0), <div class="m3-font-headline-medium">Staged</div>)}
 			<div class="ship-groups">
 				{use(this.staged, x => x.map(x => <Ship ship={x} updateIdx={0} direct={true} reload={load} />))}

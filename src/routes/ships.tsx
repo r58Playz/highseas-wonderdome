@@ -335,9 +335,16 @@ export const Shipyard: Component<{}, {
 		const id = JSON.parse(settings.token).slackId;
 		let ships: ApiShip[] = null!;
 
+		let refetchCount = 0;
 		while (!ships) {
 			const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });
 			ships = res[1];
+			if (!ships) {
+				const timeout = 1000 * refetchCount + 500;
+				console.log("failed to load: refetchCount", refetchCount);
+				refetchCount++;
+				await new Promise(r => setTimeout(r, timeout));
+			}
 		}
 
 		ships.sort((a, b) => a.autonumber - b.autonumber);

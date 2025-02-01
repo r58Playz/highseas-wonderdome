@@ -219,7 +219,7 @@ export const Home: Component<{}, {
 		const promises = [reloadInfo()];
 		await new Promise(r => setTimeout(r, 50));
 		for (let i = 0; i < +settings.numToLoad; i++) {
-			await new Promise(r => setTimeout(r, 50));
+			await new Promise(r => setTimeout(r, 1000));
 			promises.push(retryOne(title, username));
 		}
 		await Promise.all(promises);

@@ -114,19 +114,22 @@ const EditShip: Component<{
 
 	const update = async () => {
 		this.loading = true;
-		const ret = await callAction("src/app/harbor/shipyard/ship-utils.ts", "updateShip", {
-			auth: true, args: [{
-				id: this.id,
-				title: this.title,
-				repoUrl: this.repoUrl,
-				readmeUrl: this.readmeUrl,
-				deployUrl: this.deployUrl,
-				screenshotUrl: this.screenshotUrl,
-				updateDescription: this.updateDescription,
-				yswsType: this.yswsType,
-			}]
-		});
-		console.log(ret);
+		let ret: any[][] = [["a", "b"]];
+		while (ret && ret.length != 2) {
+			ret = await callAction("src/app/harbor/shipyard/ship-utils.ts", "updateShip", {
+				auth: true, args: [{
+					id: this.id,
+					title: this.title,
+					repoUrl: this.repoUrl,
+					readmeUrl: this.readmeUrl,
+					deployUrl: this.deployUrl,
+					screenshotUrl: this.screenshotUrl,
+					updateDescription: this.updateDescription,
+					yswsType: this.yswsType,
+				}]
+			}) as any[][];
+			console.log("retrying", ret);
+		}
 		this.loading = false;
 		this.open = false;
 		this.reload();
@@ -330,9 +333,13 @@ export const Shipyard: Component<{}, {
 		this.staged = [];
 		this.loading = true;
 		const id = JSON.parse(settings.token).slackId;
-		const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });
+		let ships: ApiShip[] = null!;
 
-		let ships: ApiShip[] = res[1];
+		while (!ships) {
+			const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });
+			ships = res[1];
+		}
+
 		ships.sort((a, b) => a.autonumber - b.autonumber);
 
 		const staged = ships.filter(x => x.shipStatus === "staged");

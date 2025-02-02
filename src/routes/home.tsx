@@ -205,7 +205,7 @@ export const Home: Component<{}, {
 		};
 		let refetchCount = 0;
 		while (!(await catchOne())) {
-			const timeout = 1000 * refetchCount + 500;
+			const timeout = 4000 * (Math.pow(2, refetchCount));
 			console.log(`retrying once: refetchCount ${refetchCount}; timeout ${timeout}`);
 			await new Promise(r => setTimeout(r, timeout));
 			refetchCount++;

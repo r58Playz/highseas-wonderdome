@@ -340,8 +340,8 @@ export const Shipyard: Component<{}, {
 			const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });
 			ships = res[1];
 			if (!ships) {
-				const timeout = 1000 * refetchCount + 500;
-				console.log("failed to load: refetchCount", refetchCount);
+				const timeout = 4000 * (Math.pow(2, refetchCount));
+				console.log(`retrying once: refetchCount ${refetchCount}; timeout ${timeout}`);
 				refetchCount++;
 				await new Promise(r => setTimeout(r, timeout));
 			}

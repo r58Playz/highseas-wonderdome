@@ -216,13 +216,10 @@ export const Home: Component<{}, {
 		const username = !!settings.usernameFilter ? new RegExp(settings.usernameFilter, 'i') : null;
 		this.loading = true;
 
-		const promises = [reloadInfo()];
-		await new Promise(r => setTimeout(r, 50));
+		await reloadInfo();
 		for (let i = 0; i < +settings.numToLoad; i++) {
-			await new Promise(r => setTimeout(r, 1000));
-			promises.push(retryOne(title, username));
+			await retryOne(title, username);
 		}
-		await Promise.all(promises);
 
 		this.loading = false;
 	}

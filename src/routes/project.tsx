@@ -311,7 +311,7 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			let res;
 			try {
 				res = JSON.parse(ret);
-				if (!res.ok) {
+				if (!res.ok && res.error !== "Vote already submitted") {
 					this.error = ret;
 					throw new Error("guh");
 				}

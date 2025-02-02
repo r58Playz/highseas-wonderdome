@@ -213,6 +213,15 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 		shipType = this.updateIdx === 0 ? "Root ship" : `Update ${this.updateIdx}`;
 	}
 
+	let shipPayout;
+	if (this.ship.paidOut) {
+		shipPayout = "" + this.ship.doubloonPayout;
+	} else if (!this.ship.voteRequirementMet) {
+		shipPayout = "Needs more votes";
+	} else {
+		shipPayout = `${10 - this.ship.matchups_count} matchups left`;
+	}
+
 	const rating = ((this.ship.doubloonPayout) / (this.ship.credited_hours || 0)) * 100 / 25;
 
 	return (
@@ -258,7 +267,7 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 						</Chip>
 						{this.ship.shipStatus === "shipped" ?
 							<Chip type="general" icon={iconPaid}>
-								{this.ship.paidOut ? this.ship.doubloonPayout : `${10 - this.ship.matchups_count} matchups left`}
+								{shipPayout}
 							</Chip>
 							: null}
 						{this.ship.shipStatus === "shipped" && this.ship.paidOut ?
@@ -337,9 +346,14 @@ export const Shipyard: Component<{}, {
 
 		let refetchCount = 0;
 		while (!ships) {
-			const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });
-			ships = res[1];
-			if (!ships) {
+			try {
+				const res: any[] = await callAction("src/app/utils/data.ts", "fetchShips", { args: [id], auth: true });
+				ships = res[1];
+				if (!ships) {
+					throw new Error("x");
+				}
+			} catch {
+
 				const timeout = 4000 * (Math.pow(2, refetchCount));
 				console.log(`retrying once: refetchCount ${refetchCount}; timeout ${timeout}`);
 				refetchCount++;
@@ -384,6 +398,10 @@ export const Shipyard: Component<{}, {
 		}
 
 		shipGroups.sort((a, b) => +b.created - +a.created);
+
+		// @ts-ignore
+		window.ships = shipGroups;
+
 		this.ships = shipGroups;
 		this.staged = staged;
 		this.loading = false;

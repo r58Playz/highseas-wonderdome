@@ -305,19 +305,25 @@ export const SubmitVoteDialog: Component<{ matchup: Matchup, selected: 1 | 2, op
 			return ret;
 		}
 
+		let refetchCount = 0;
 		while (true) {
 			const ret = await trySubmitVote();
 			let res;
 			try {
 				res = JSON.parse(ret);
+				if (!res.ok) {
+					this.error = ret;
+					throw new Error("guh");
+				}
 			} catch {
 				this.error = ret;
+				const timeout = 4000 * (Math.pow(2, refetchCount));
+				console.log(`retrying once: refetchCount ${refetchCount}; timeout ${timeout}`);
+				await new Promise(r => setTimeout(r, timeout));
+				refetchCount++;
 				continue;
 			}
 			console.log("Really submitted vote: ", getProject(this.selected).id, getOtherProject(this.selected).id, res);
-			if (!res.ok) {
-				this.error = ret;
-			}
 			break;
 		}
 

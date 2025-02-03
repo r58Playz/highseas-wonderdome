@@ -217,7 +217,7 @@ const Ship: Component<{ ship: ApiShip, direct: boolean, updateIdx: number, reloa
 	if (this.ship.paidOut) {
 		shipPayout = "" + this.ship.doubloonPayout;
 	} else if (!this.ship.voteRequirementMet) {
-		shipPayout = "Needs more votes";
+		shipPayout = "Not in Wonderdome yet; vote more!";
 	} else {
 		shipPayout = `${10 - this.ship.matchups_count} matchups left`;
 	}

@@ -1,5 +1,8 @@
 # highseas-wonderdome
 
+> [!NOTE]
+> High Seas has ended.
+
 Better High Seas Wonderdome client, using [epoxy-tls](https://github.com/mercuryworkshop/epoxy-tls) and [Wisp](https://github.com/mercuryworkshop/wisp-protocol) to access the High Seas API.
 
 ## Features
